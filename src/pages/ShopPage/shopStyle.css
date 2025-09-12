@@ -1,0 +1,44 @@
+.post-slide .post-img {
+    overflow: hidden;
+}
+
+.post-slide .post-img img {
+    transform: scale(1, 1);
+    transition: transform 0.3s ease;
+}
+
+.post-slide:hover .post-img img {
+    transform: scale(1.034);
+}
+
+.post-slide .post-content {
+    padding: 15px 15px 30px;
+    display: grid;
+    grid-auto-rows: 45px 80px 60px 20px
+}
+
+.post-slide .post-title a {
+    font-size: 16px;
+    font-weight: bold;
+    display: inline-block;
+    text-transform: uppercase;
+    transition: all 0.3s ease 0s;
+    text-decoration: none;
+    line-height: 18px;
+}
+
+.post-slide .post-description {
+    line-height: 24px;
+}
+
+.post-slide .post-date {
+    color: #a9a9a9;
+    font-size: 14px;
+}
+
+.post-slide .post-date i {
+    font-size: 20px;
+    margin-right: 8px;
+    color: white;
+}
+
