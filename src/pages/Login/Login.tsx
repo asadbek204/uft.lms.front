@@ -1,6 +1,5 @@
 import React, {useRef, useState} from "react";
 import Logo from "../../assets/uftDark.png";
-import Logo2 from "../../assets/uftWhite.png";
 import {Link} from "react-router-dom";
 import client from "../../components/services";
 import {ToastContainer, toast} from "react-toastify";
