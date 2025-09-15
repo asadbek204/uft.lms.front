@@ -11,8 +11,8 @@ import { Icons, Translator } from "../../maps";
 import { TTranslator } from "../../types";
 import { GlobalContext } from "../../App";
 import DarkModeToggle from "../DarkModeToggler/DarkModeToggler.tsx";
-import logolight from "../../images/nav-icons/logo-light.png";
-import logodark from "../../images/nav-icons/logo-dark.png";
+import logolight from "../../assets/uftDark.png";
+import logodark from "../../assets/uftWhite.png";
 import MoreVertical from "../../images/nav-icons/more-vertical.svg";
 import JustifyRegular from "../../images/nav-icons/Justify-Regular.svg";
 import LeftRegular from "../../images/nav-icons/LeftAlign-Regular.svg";
@@ -95,9 +95,11 @@ function SideBar({ pages, setLang, setPage }: TSideBarProperties) {
     fetchUser();
   }, [userId]);
 
-  const toggleDarkMode = () => {
-    setIsDarkMode((prevMode) => !prevMode);
-  };
+const toggleDarkMode = () => {
+  setIsDarkMode((prevMode) => !prevMode);
+  window.location.reload(); 
+};
+
 
   const handleAuthAction = () => {
     if (role === "guest") {
@@ -198,7 +200,7 @@ function SideBar({ pages, setLang, setPage }: TSideBarProperties) {
                 onClick={() => setPage(Pages.Home)}
                 src={isDarkMode ? logodark : logolight}
                 className={`overflow-hidden transition-all ${
-                  expanded ? "w-52" : "w-0"
+                  expanded ? "w-44" : "w-0"
                 }`}
                 alt="logo"
               />

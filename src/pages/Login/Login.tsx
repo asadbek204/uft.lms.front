@@ -1,5 +1,6 @@
 import React, {useRef, useState} from "react";
-import Logo from "../../images/logo.png";
+import Logo from "../../assets/uftDark.png";
+import Logo2 from "../../assets/uftWhite.png";
 import {Link} from "react-router-dom";
 import client from "../../components/services";
 import {ToastContainer, toast} from "react-toastify";
@@ -117,10 +118,10 @@ const Login = () => {
             <ToastContainer/>
             <div className="lg:w-3/6 w-11/12 bg-white rounded-lg dark:text-dark dark:bg-gray-800 drop-shadow-lg">
                 <div>
-                    <img className="w-1/4 mx-auto pt-12" src={Logo} alt="Logo"/>
-                    <h2 className="text-center text-3xl mt-2">
+                    <img className="w-1/3 mx-auto pt-12" src={Logo} alt="Logo"/>
+                    {/* <h2 className="text-center text-3xl mt-2">
                         Bobir Akilhanov Tech Academy
-                    </h2>
+                    </h2> */}
                     <div
                         className="my_form lg:w-2/3 sm:w-full h-full 2xl:mx-auto mx-auto lg:m-2 lg:mx-auto 2xl:m-3 p-5">
                         <form onSubmit={onLogin} className="flex gap-7 lg:gap-5 flex-col">
