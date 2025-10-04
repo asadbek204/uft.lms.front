@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import Logo from "../../images/logo.png";
+import Logo from "../../assets/uftDark.png";
 import {Link} from "react-router-dom";
 import {client} from '../../components/services';
 import { useContext } from "react";
@@ -93,7 +93,7 @@ const Forgot: React.FC = () => {
         <div className="bg-gray-200 absolute top-0 bottom-0 left-0 right-0 flex justify-center items-center dark:bg-gray-900 text-black dark:text-white">
             <div className="lg:w-3/6 sm:w-full bg-white rounded-lg dark:text-dark drop-shadow-lg dark:bg-gray-800">
                 <div>
-                    <img className="w-1/4 mx-auto m-4" src={Logo} alt="Logo"/>
+                    <img className="w-1/3 mx-auto m-4" src={Logo} alt="Logo"/>
                     <h2 className='text-center text-3xl mt-2'>{contents.title} </h2>
                     <div className='my_form lg:w-2/3 sm:w-full h-full 2xl:mx-auto mx-auto lg:m-2 lg:mx-auto 2xl:m-16 p-5'>
                         <form onSubmit={handleSubmit} className="flex gap-7 lg:gap-5 flex-col">

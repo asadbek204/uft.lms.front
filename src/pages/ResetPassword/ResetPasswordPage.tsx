@@ -1,5 +1,6 @@
-import Logo from "../../images/logo.png";
-import { useContext } from "react";
+import Logo from "../../assets/uftDark.png";
+import Logo2 from "../../assets/uftWhite.png";
+import { useContext, useEffect, useState } from "react";
 import { GlobalContext } from "../../App";
 import { Langs } from "../../enums";
 
@@ -45,11 +46,25 @@ const contentsMap = new Map<Langs, TConfPassComponentContent>([
 function ResetPasswordPage() {
   const { lang } = useContext(GlobalContext);
   const contents = contentsMap.get(lang) as TConfPassComponentContent;
+
+  const [theme, setTheme] = useState<string>("light");
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+  }, []);
+
   return (
     <div className="mt-16 md:mt-0 w-full flex justify-center items-center dark:bg-gray-900 text-black dark:text-white">
       <div className="lg:w-3/6 sm:w-full bg-white rounded-lg dark:text-dark drop-shadow-lg dark:bg-gray-800">
         <div className="">
-          <img className="w-1/3 sm:w-1/4 mx-auto m-4" src={Logo} alt="" />
+          <img
+            className="w-1/3 sm:w-1/3 mx-auto m-4"
+            src={theme === "dark" ? Logo2 : Logo}
+            alt=""
+          />
           <h2 className="text-center text-2xl sm:text-3xl mt-2">
             {contents.title}
           </h2>

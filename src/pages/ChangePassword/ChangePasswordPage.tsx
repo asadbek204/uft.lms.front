@@ -1,6 +1,7 @@
 import { Langs } from "../../enums";
-import Logo from "../../images/logo.png";
-import { useContext, useState } from "react";
+import Logo from "../../assets/uftDark.png";
+import Logo2 from "../../assets/uftWhite.png";
+import { useContext, useEffect, useState } from "react";
 import { GlobalContext } from "../../App";
 import client from "../../components/services";
 import { toast } from "react-toastify";
@@ -72,6 +73,14 @@ function ChangePasswordPage() {
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [theme, setTheme] = useState<string>("light");
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -95,7 +104,7 @@ function ChangePasswordPage() {
     <div className="mt-16 md:mt-0 w-full flex justify-center items-center dark:bg-gray-900 text-black dark:text-white">
       <div className="lg:w-3/6 sm:w-full bg-white rounded-lg dark:text-dark drop-shadow-lg dark:bg-gray-800">
         <div>
-          <img className="w-1/3 sm:w-1/4 mx-auto m-4" src={Logo} alt="" />
+          <img className="w-1/3 sm:w-1/3 mx-auto m-4"  src={theme === "dark" ? Logo2 : Logo} alt="" />
           <h2 className="text-center text-2xl sm:text-3xl mt-2">
             {contents.title}
           </h2>
