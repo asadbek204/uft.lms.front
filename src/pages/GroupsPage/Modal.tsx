@@ -163,16 +163,7 @@ function Modal({ isVisible, onClose }: TModalProps) {
       setErrorMessage(contents.required); // Set the error message
       return; 
     }
-
-    const pattern = /^(FSP-U-|FSP-R-|FSJ-U-|FSJ-R-|C#-U-|C#-R-|AI-U-|AI-R-)/;
-
-    if (!pattern.test(groupNameValue)) {
-      setError(
-        `${contents.groupName}: FSP-U-, FSP-R-, FSJ-U-, FSJ-R-, C#-U-, C#-R-, AI-U-, AI-R-`
-      );
-      return;
-    }
-
+    // Allow any non-empty group name; remove strict prefix validation that blocked valid names like "Boys"
     setError("");
 
     const daysOfWeek = isOddDays ? daysOfWeekOdd : daysOfWeekEven;

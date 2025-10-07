@@ -22,7 +22,7 @@ type TGroups = {
 };
 
 function TCHAttandancePage() {
-    const { lang } = useContext(GlobalContext);
+    const { lang, userId } = useContext(GlobalContext);
     const contents = contentsMap.get(lang) as TGroupsComponentContent;
 
     const [activeGroups, setActiveGroups] = useState<TGroups[]>([]);
@@ -34,7 +34,7 @@ function TCHAttandancePage() {
         const fetchGroups = async () => {
             try {
                 // Dinamik ma'lumotlarni olish
-                const response = await client.get<TGroups[]>('education/group/list/?needed_role=teacher');
+                const response = await client.get<TGroups[]>(`education/group/list/?needed_role=teacher&teacher=${userId}`);
                 // Ma'lumotlarni filtrash
                 const active = response.data.filter(group => group.status);
                 const inactive = response.data.filter(group => !group.status);
@@ -49,7 +49,7 @@ function TCHAttandancePage() {
         };
 
         fetchGroups();
-    }, []);
+    }, [userId]);
 
     return (
         <div className="w-full mt-12 md:mt-0">

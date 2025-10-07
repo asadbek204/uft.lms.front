@@ -100,7 +100,7 @@ const weekdaysOrder: { [key: string]: number } = {
 };
 
 function TCHSHedulePage() {
-    const { lang } = useContext(GlobalContext);
+  const { lang, userId } = useContext(GlobalContext);
     const contents = contentsMap.get(lang) as TGroupsComponentContent;
     const weekdays = weekdaysMap.get(lang) || {};
 
@@ -109,9 +109,9 @@ function TCHSHedulePage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchGroups = async () => {
+    const fetchGroups = async () => {
             try {
-                const response = await client.get<TGroups[]>('education/group/list/?needed_role=teacher');
+        const response = await client.get<TGroups[]>(`education/group/list/?needed_role=teacher&teacher=${userId}`);
                 setGroups(response.data);
             } catch (error) {
                 setError(contents.error);
@@ -120,8 +120,8 @@ function TCHSHedulePage() {
             }
         };
 
-        fetchGroups();
-    }, [contents.error]);
+    fetchGroups();
+  }, [contents.error, userId]);
 
     if (loading) {
         return <Loading />;

@@ -89,6 +89,13 @@ const defaultStudent = {
     document: [],
 };
 
+// Simple group type used for moving students between groups
+type TGroup = {
+    id: number;
+    name: string;
+    status: boolean;
+};
+
 interface TNewsComponentContent {
     title1: string;
     title2: string;
@@ -229,6 +236,12 @@ function DebtorsPageUsers() {
     const [isModalAddRoleOpen, setIsModalAddRoleOpen] = useState<boolean>(false);
     const formRef = useRef(null);
     const [userId, setUserId] = useState(0)
+    // For moving student to another group
+    const [groups, setGroups] = useState<TGroup[]>([]);
+    const [isMoveOpen, setIsMoveOpen] = useState(false);
+    const [selectedMoveGroup, setSelectedMoveGroup] = useState<number | null>(null);
+    const moveMenuRef = useRef<HTMLDivElement | null>(null);
+    const moveToggleRef = useRef<HTMLButtonElement | null>(null);
 
     useEffect(() => {
         setLoading(true);
@@ -265,7 +278,32 @@ function DebtorsPageUsers() {
                 setLoading(false);
             }
         })();
+        // Load groups for move action
+        (async () => {
+            try {
+                const list = await client.get(`education/group/list/?needed_role=${role}`);
+                if (Array.isArray(list.data)) {
+                    setGroups(list.data.filter((g: TGroup) => g.status));
+                }
+            } catch (e) {
+                // ignore quietly; group move UI will just be empty
+            }
+        })();
     }, [id, isEditing]);
+
+    // Close move menu on outside click
+    useEffect(() => {
+        const onDocClick = (e: MouseEvent) => {
+            const target = e.target as Node;
+            const clickedInsideMenu = moveMenuRef.current?.contains(target);
+            const clickedToggle = moveToggleRef.current?.contains(target);
+            if (isMoveOpen && !clickedInsideMenu && !clickedToggle) {
+                setIsMoveOpen(false);
+            }
+        };
+        document.addEventListener('click', onDocClick);
+        return () => document.removeEventListener('click', onDocClick);
+    }, [isMoveOpen]);
     const handleEdit = () => {
         setIsEditing(true);
     };
@@ -404,6 +442,7 @@ function DebtorsPageUsers() {
                                                         ? contents.studentka
                                                         : ""} {data.sure_name} {data.first_name} {data.last_name}
                     </h1>
+                    
                     {!isEditing ? (
                         <div className=" hidden md:flex">
                             {(role !== "teacher") && (
@@ -413,6 +452,58 @@ function DebtorsPageUsers() {
                                 >
                                     <i className="fa fa-pen"></i>
                                 </button>
+                            )}
+                            {/* Move to another group (desktop) */}
+                            {groups.length > 0 && (
+                                <div className="relative ml-2">
+                                    <button
+                                        ref={moveToggleRef}
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); setIsMoveOpen((v) => !v); setSelectedMoveGroup(null); }}
+                                        className="px-4 py-3 text-white bg-blue-500 rounded hover:bg-blue-600"
+                                        title="Move to group"
+                                    >
+                                        <i className="fa-solid fa-right-left"></i>
+                                    </button>
+                                    {isMoveOpen && (
+                                        <div ref={moveMenuRef} onClick={(e) => e.stopPropagation()} className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded shadow-lg z-10">
+                                            <ul className="max-h-64 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                                                {groups.map((g) => (
+                                                    <li key={g.id}>
+                                                        <button
+                                                            className={`w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-black dark:text-white ${selectedMoveGroup === g.id ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                                                            onClick={() => setSelectedMoveGroup(g.id)}
+                                                        >
+                                                            {selectedMoveGroup === g.id && <i className="fa fa-check mr-2"></i>}
+                                                            {g.name}
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+                                                <button
+                                                    disabled={!selectedMoveGroup}
+                                                    type="button"
+                                                    className="w-full px-3 py-2 bg-blue-500 disabled:opacity-50 text-white rounded"
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+                                                        if (!selectedMoveGroup) return;
+                                                        try {
+                                                            await client.patch(`students/update/${id}/`, { groups: selectedMoveGroup });
+                                                            toast.success('Student moved');
+                                                            setIsMoveOpen(false);
+                                                            window.location.reload();
+                                                        } catch (err) {
+                                                            toast.error('Failed to move student');
+                                                        }
+                                                    }}
+                                                >
+                                                    Move
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             )}
                             {(role === "admin" || role === "manager") && (
                                 <div>
@@ -468,6 +559,58 @@ function DebtorsPageUsers() {
                         >
                             <i className="fa fa-pen"></i>
                         </button>
+                        {/* Move to another group (mobile) */}
+                        {groups.length > 0 && (
+                            <div className="relative">
+                                <button
+                                    ref={moveToggleRef}
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setIsMoveOpen((v) => !v); setSelectedMoveGroup(null); }}
+                                    className="px-4 py-3 ml-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+                                    title="Move to group"
+                                >
+                                    <i className="fa-solid fa-right-left"></i>
+                                </button>
+                                {isMoveOpen && (
+                                    <div ref={moveMenuRef} onClick={(e) => e.stopPropagation()} className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded shadow-lg z-10">
+                                        <ul className="max-h-64 overflow-y-auto">
+                                            {groups.map((g) => (
+                                                <li key={g.id}>
+                                                    <button
+                                                        className={`w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-black dark:text-white ${selectedMoveGroup === g.id ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                                                        onClick={() => setSelectedMoveGroup(g.id)}
+                                                    >
+                                                        {selectedMoveGroup === g.id && <i className="fa fa-check mr-2"></i>}
+                                                        {g.name}
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+                                            <button
+                                                disabled={!selectedMoveGroup}
+                                                type="button"
+                                                className="w-full px-3 py-2 bg-blue-500 disabled:opacity-50 text-white rounded"
+                                                onClick={async (e) => {
+                                                    e.stopPropagation();
+                                                    if (!selectedMoveGroup) return;
+                                                    try {
+                                                        await client.patch(`students/update/${id}/`, { groups: selectedMoveGroup });
+                                                        toast.success('Student moved');
+                                                        setIsMoveOpen(false);
+                                                        window.location.reload();
+                                                    } catch (err) {
+                                                        toast.error('Failed to move student');
+                                                    }
+                                                }}
+                                            >
+                                                Move
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         {(role === "admin" || role === "manager") && (
                             <button
                                 onClick={openDeleteModal} // Open modal on delete button click

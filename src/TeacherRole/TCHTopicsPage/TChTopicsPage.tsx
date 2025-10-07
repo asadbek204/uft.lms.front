@@ -33,7 +33,7 @@ type TGroups = {
 };
 
 function TCHTopicsPage() {
-    const { lang } = useContext(GlobalContext);
+    const { lang, userId } = useContext(GlobalContext);
     const contents = contentsMap.get(lang) as TGroupsComponentContent;
 
     const [activeGroups, setActiveGroups] = useState<TGroups[]>([]);
@@ -42,10 +42,10 @@ function TCHTopicsPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchGroups = async () => {
+    const fetchGroups = async () => {
             try {
 
-                const response = await client.get<TGroups[]>('education/group/list/?needed_role=teacher');
+        const response = await client.get<TGroups[]>(`education/group/list/?needed_role=teacher&teacher=${userId}`);
 
                 const active = response.data.filter(group => group.status);
                 const inactive = response.data.filter(group => !group.status);
@@ -60,7 +60,7 @@ function TCHTopicsPage() {
         };
 
         fetchGroups();
-    }, []);
+    }, [userId]);
 
     return (
         <div className="w-full mt-12 md:mt-0">
