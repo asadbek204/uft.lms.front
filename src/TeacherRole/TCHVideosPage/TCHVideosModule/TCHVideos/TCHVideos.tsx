@@ -21,7 +21,7 @@ type TGroups = {
 };
 
 function TCHVideos() {
-    const { lang } = useContext(GlobalContext);
+    const { lang, userId } = useContext(GlobalContext);
     const contents = contentsMap.get(lang) as TGroupsComponentContent;
 
     const [filteredGroups, setFilteredGroups] = useState<TGroups[]>([]);
@@ -32,7 +32,7 @@ function TCHVideos() {
         const fetchGroups = async () => {
             try {
                 // Dinamik ma'lumotlarni olish
-                const response = await client.get<TGroups[]>('education/group/list/?needed_role=teacher');
+                const response = await client.get<TGroups[]>(`education/group/list/?needed_role=teacher&teacher=${userId}`);
                 // Ma'lumotlarni yangilash
                 setFilteredGroups(response.data);
             } catch (error) {
@@ -44,7 +44,7 @@ function TCHVideos() {
         };
 
         fetchGroups();
-    }, []);
+    }, [userId]);
 
     return (
         <div className="w-full">
