@@ -92,13 +92,7 @@ function B() {
     >
       <h2 className="text-xs md:text-xl font-bold mb-4 text-end text-black dark:text-white">{contents.lesson}</h2>
       <div className="md:flex items-center space-x-4">
-        {/*<div className="2xl:w-5/6 w-full flex justify-center md:block mb-2 md:mb-0">*/}
-        <img
-          src="https://via.placeholder.com/150"
-          alt="Article"
-          className="w-16 h-16 rounded mx-auto"
-        />
-        {/*</div>*/}
+      
         <div>
           <h3 className="font-semibold text-sm text-black dark:text-white">BlockchainReporter</h3>
           <p className="text-xs md:text-sm text-black dark:text-white">

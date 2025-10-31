@@ -14,14 +14,13 @@ type TData = {
     sure_name: string;
     last_name: string;
     gender: 'M' | 'F';
-    birthday: Moment; // moment tipida saqlaymiz
+    birthday: Moment;
     role: string;
     salary: number;
     phone_number: string;
     email: string;
     password: string;
 };
-
 
 type TNewsComponentContent = {
     title: string;
@@ -58,7 +57,6 @@ type TNewsComponentContent = {
     ivalid_value: string,
     invalid_password: string,
     invalid_email: string
-
 };
 
 const contentsMap = new Map<Langs, TNewsComponentContent>([
@@ -97,7 +95,6 @@ const contentsMap = new Map<Langs, TNewsComponentContent>([
         error2: "Telefon raqami noto'g'ri formatda",
         error3: "Xodim qo'shishda xato ",
         required: "to'ldirish shart",
-
     }],
     [Langs.RU, {
         invalid_email: "Электронная почта недействительна",
@@ -134,7 +131,6 @@ const contentsMap = new Map<Langs, TNewsComponentContent>([
         error2: "Номер телефона указан в неправильном формате",
         error3: "Ошибка при добавлении сотрудника ",
         required: "должен быть заполнен",
-
     }],
     [Langs.EN, {
         invalid_email: "Email is not Valid",
@@ -171,10 +167,8 @@ const contentsMap = new Map<Langs, TNewsComponentContent>([
         error2: "The phone number is in the wrong format",
         error3: "Error adding employee ",
         required: "required",
-
     }],
 ]);
-
 
 const AddEmployee: React.FC = () => {
     const {lang} = useContext(GlobalContext);
@@ -192,15 +186,16 @@ const AddEmployee: React.FC = () => {
         data.phone_number = `+998${data.phone_number.replace(/[^0-9]/g, '')}`;
         
         // Tug'ilgan kunni formatlash
-        const birthday = data.birthday; // birthday moment.Moment tipida
+        const birthday = data.birthday;
         const birthdayString = `${birthday.year()}-${(birthday.month() + 1).toString().padStart(2, '0')}-${birthday.date().toString().padStart(2, '0')}`;
         
-        // Data obyektiga birthday ni string sifatida qo'shamiz
         const postData = { ...data, birthday: birthdayString };
 
         try {
             await client.post('employees/create/', postData);
             toast.success(contents.error1);
+            // Formni tozalash
+            form.resetFields();
         } catch (error) {
             toast.error(contents.error3);
             console.error(error);
@@ -219,16 +214,25 @@ const AddEmployee: React.FC = () => {
                 </button>
                 <h1 className="text-center text-3xl dark:text-white font-semibold font-sans mx-auto">{contents.title}</h1>
             </div>
-            <Form className='w-full 2xl:h-[87%] h-[70%] overflow-y-auto' layout="vertical" size="large" form={form} onFinish={onFinish}>
-                <div className="md:grid grid-cols-2 gap-x-[30px] gap-y-[10px] mb-8 ">
+            <Form 
+                className='w-full 2xl:h-[87%] h-[70%] overflow-y-auto' 
+                layout="vertical" 
+                size="large" 
+                form={form} 
+                onFinish={onFinish}
+                // ASOSIY YECHIM: autocomplete va preserve o'chirish
+                autoComplete="off"
+                preserve={false}
+            >
+                <div className="md:grid grid-cols-2 gap-x-[30px] gap-y-[10px] mb-8">
                     <Form.Item label={contents.label2} name="first_name" rules={[{ required: true, message: contents.required }]}>
-                        <Input />
+                        <Input autoComplete="off" />
                     </Form.Item>
                     <Form.Item label={contents.label3} name="sure_name" rules={[{ required: true, message: contents.required }]}>
-                        <Input />
+                        <Input autoComplete="off" />
                     </Form.Item>
                     <Form.Item label={contents.sureName} name="last_name" rules={[{ required: true, message: contents.required }]}>
-                        <Input />
+                        <Input autoComplete="off" />
                     </Form.Item>
                     <Form.Item label={contents.gender} name="gender" rules={[{ required: true, message: contents.required }]}>
                         <Select>
@@ -257,20 +261,19 @@ const AddEmployee: React.FC = () => {
                     ]}>
                         <InputMask mask="(99) 999-99-99">
                             {/* @ts-expect-error */}
-                            {(inputProps) => <Input {...inputProps} addonBefore="+998" />}
+                            {(inputProps) => <Input {...inputProps} addonBefore="+998" autoComplete="off" />}
                         </InputMask>
                     </Form.Item>
                     <Form.Item label={contents.email} name="email" rules={[
                         { required: true, message: contents.required },
                         { type: 'email', message: contents.invalid_email }
                     ]}>
-                        <Input />
+                        <Input autoComplete="off" />
                     </Form.Item>
                     <Form.Item label={contents.password} name="password" rules={[
                         { required: true, message: contents.required },
-                        // { min: 8, message: 'Password must be at least 8 characters' }
                     ]}>
-                        <Input.Password />
+                        <Input.Password autoComplete="new-password" />
                     </Form.Item>
                 </div>
 

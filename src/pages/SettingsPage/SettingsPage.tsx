@@ -64,7 +64,7 @@ const SettingsPage = () => {
     >
       {contents.resetPassword}
     </Link>
-    {role !== 'guest' ? (
+    {/* {role !== 'guest' ? (
       <select
         className="py-2 sm:py-3 px-4 sm:px-5 block w-full sm:w-96 bg-white text-center text-lg sm:text-xl rounded-md focus:border-blue-500 dark:hover:text-blue-400 drop-shadow-lg focus:ring-blue-500 disabled:opacity-50 dark:text-white dark:bg-gray-700 disabled:pointer-events-none"
         value={role}
@@ -77,7 +77,7 @@ const SettingsPage = () => {
           </option>
         ))}
       </select>
-    ) : null}
+    ) : null} */}
   </div>
 </div>
 

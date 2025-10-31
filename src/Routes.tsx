@@ -249,6 +249,7 @@ const manager: ReactNode = (
         <Route path='/debts/:id' element={<StudentDetailPageAll/>}/>
         <Route path='/forgot' element={<Forgot/>}/>
         <Route path='/contracts' element={<MJContacts/>}/>
+        <Route path='/library' element={<LibraryPage/>}/>
         <Route path='/new/agreement/:id' element={<MJContractNewModule/>}/>
         <Route path='/contracts/:id' element={<StudentDetailPageAll/>}/>
         <Route path='/contracts/form-students' element={<ManagerStudentsForm/>}/>
