@@ -1,168 +1,262 @@
-import {Link} from "react-router-dom";
-import {useEffect, useState} from "react";
+"use client";
+import { Link } from "react-router-dom";
+import { useEffect, useState, useContext } from "react";
 import client from "../../components/services";
-import {toast} from "react-toastify";
-import EditStaffModal from "./EditStaffModal/EditStaffModal.tsx";
-import DeleteStaffModal from "./DeleteStaffModal/DeleteStaffModal.tsx";
-
-interface StaffMember {
-    id: number,
-    salary: number,
-    role: Role,
-    user: User
-}
+import { toast } from "react-toastify";
+import EditStaffModal from "./EditStaffModal/EditStaffModal";
+import DeleteStaffModal from "./DeleteStaffModal/DeleteStaffModal";
+import { GlobalContext } from "../../App";
+import { Langs } from "../../enums";
 
 interface Role {
-    name: string,
-    description: string
+  id: number;
+  name: string;
+  description: string;
 }
 
 interface User {
-    first_name: string,
-    last_name: string,
-    phone_number: string,
-    birthday: string,
-    email: string,
+  id: number;
+  first_name: string;
+  last_name: string;
+  sure_name: string;
+  phone_number: string;
+  email: string;
+  birthday: string;
+  passport: string | null;
+  pinfl: string | null;
+  gender: string;
 }
 
+interface StaffMember {
+  id: number;
+  salary: number;
+  role: Role;
+  manager: number | null;
+  user: User;
+}
+
+const contentsMap = new Map([
+  [
+    Langs.UZ,
+    {
+      title: "👥 Xodimlar ro‘yxati",
+      add: "Yangi xodim qo‘shish",
+      staff: "Xodim",
+      contact: "Aloqa",
+      role: "Lavozim",
+      salary: "Maosh",
+      actions: "Harakatlar",
+      male: "Erkak",
+      female: "Ayol",
+      success_delete: " Xodim muvaffaqiyatli o‘chirildi",
+      error_delete: "❌ O‘chirishda xatolik yuz berdi",
+      error_fetch: "❌ Ma’lumotlarni olishda xatolik",
+    },
+  ],
+  [
+    Langs.RU,
+    {
+      title: "👥 Список сотрудников",
+      add: "Добавить нового сотрудника",
+      staff: "Сотрудник",
+      contact: "Контакты",
+      role: "Должность",
+      salary: "Зарплата",
+      actions: "Действия",
+      male: "Мужской",
+      female: "Женский",
+      success_delete: "Сотрудник успешно удалён",
+      error_delete: "❌ Ошибка при удалении",
+      error_fetch: "❌ Ошибка при получении данных",
+    },
+  ],
+  [
+    Langs.EN,
+    {
+      title: "👥 Staff List",
+      add: "Add New Staff",
+      staff: "Staff",
+      contact: "Contact",
+      role: "Role",
+      salary: "Salary",
+      actions: "Actions",
+      male: "Male",
+      female: "Female",
+      success_delete: " Staff deleted successfully",
+      error_delete: "❌ Error deleting staff",
+      error_fetch: "❌ Error fetching staff data",
+    },
+  ],
+]);
+
 const StaffList = () => {
-    const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
-    const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
-    const [isEditModalOpen, setEditModalOpen] = useState(false);
-    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const { lang } = useContext(GlobalContext);
+  const t = contentsMap.get(lang) || contentsMap.get(Langs.UZ)!;
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const response = await client.get(`employees/list/`);
-                setStaffMembers(response.data);
-            } catch (error) {
-                console.error(error);
-                toast.error("Error fetching staff members.");
-            }
-        })();
-    }, []);
+  const fetchStaff = async () => {
+    try {
+      const response = await client.get(`/employees/list/`);
+      setStaffMembers(response.data);
+    } catch (error) {
+      console.error("❌ Error fetching staff:", error);
+      toast.error(t.error_fetch);
+    }
+  };
 
-    const handleEditClick = (staff: StaffMember) => {
-        setSelectedStaff(staff); // Set selected staff
-        setEditModalOpen(true); // Open edit modal
-    };
+  useEffect(() => {
+    fetchStaff();
+  }, []);
 
-    const handleDeleteClick = (staff: StaffMember) => {
-        setSelectedStaff(staff); // Set selected staff
-        setDeleteModalOpen(true); // Open delete modal
-    };
+  const handleEditClick = (staff: StaffMember) => {
+    setSelectedStaff(staff);
+    setEditModalOpen(true);
+  };
 
-    const handleSave = (updatedStaff: StaffMember) => {
+  const handleDeleteClick = (staff: StaffMember) => {
+    setSelectedStaff(staff);
+    setDeleteModalOpen(true);
+  };
+
+  const handleSave = () => {
+    fetchStaff();
+    setEditModalOpen(false);
+    setSelectedStaff(null);
+  };
+
+  const handleDelete = async () => {
+    if (selectedStaff) {
+      try {
+        await client.delete(`/employees/delete/${selectedStaff.id}/`);
+        toast.success(t.success_delete);
         setStaffMembers((prev) =>
-            prev.map((staff) => (staff.id === updatedStaff.id ? updatedStaff : staff))
+          prev.filter((staff) => staff.id !== selectedStaff.id)
         );
-        setEditModalOpen(false);
-    };
-
-    const handleDelete = () => {
-        if (selectedStaff) {
-            (async() => await client.delete(`employees/delete/${selectedStaff.id}/`))().then(() => {
-                // TODO: configure text translation
-                toast.success('Muvaffaqiyatli ochirildi')
-            }).catch(() => {
-                toast.error('O\'chirishda xatolik')
-            })
-            setStaffMembers((prev) => prev.filter((staff) => staff.id !== selectedStaff.id));
-            setSelectedStaff(null); // Reset selected staff
-        }
+      } catch (err) {
+        toast.error(t.error_delete);
+      } finally {
+        setSelectedStaff(null);
         setDeleteModalOpen(false);
-    };
+      }
+    }
+  };
 
+  return (
+    <div className="w-full p-6 rounded-lg shadow-sm">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold text-gray-800">{t.title}</h2>
+        <Link
+          to={`addstaff`}
+          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+        >
+          <i className="fa fa-plus mr-2"></i>
+          {t.add}
+        </Link>
+      </div>
 
-    return (
-        <div className="w-full p-6 rounded-lg shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold text-gray-800">Staff Members</h2>
-                <Link to={`addstaff`}
-                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
-                    <i className="fa fa-plus mr-2"></i>
-                    Add New Staff
-                </Link>
-            </div>
+      <div className="overflow-x-auto shadow-xl max-h-[690px] md:max-h-[620px] xl:max-h-[600px] 2xl:max-h-[690px]">
+        <table className="min-w-full relative">
+          <thead className="sticky top-0 bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t.staff}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t.contact}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t.role}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t.salary}
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {t.actions}
+              </th>
+            </tr>
+          </thead>
 
-            <div
-                className="overflow-x-auto shadow-xl max-h-[690px] md:max-h-[620px] xl:max-h-[600px] 2xl:max-h-[690px]">
-                <table className="min-w-full relative">
-                    <thead className="sticky top-0">
-                    <tr className="bg-gray-50">
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salary</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                    {staffMembers.map((staff) => (
-                        <tr key={staff.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                    <div className="ml-4">
-                                        <div
-                                            className="text-sm font-medium text-gray-900">{staff.user.first_name} {staff.user.last_name}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex flex-col space-y-1">
-                                    <div className="flex items-center text-sm text-gray-500">
-                                        <i className="fa fa-envelope mr-2"></i>
-                                        {staff.user.email}
-                                    </div>
-                                    <div className="flex items-center text-sm text-gray-500">
-                                        <i className="fa fa-phone mr-2"></i>
-                                        {staff.user.phone_number}
-                                    </div>
-                                </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                      className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+          <tbody className="bg-white divide-y divide-gray-200">
+            {staffMembers.map((staff) => (
+              <tr key={staff.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {staff.user.first_name} {staff.user.last_name}{" "}
+                        {staff.user.sure_name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {staff.user.gender === "M" ? t.male : t.female}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex flex-col space-y-1">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <i className="fa fa-envelope mr-2"></i>
+                      {staff.user.email}
+                    </div>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <i className="fa fa-phone mr-2"></i>
+                      {staff.user.phone_number}
+                    </div>
+                  </div>
+                </td>
+
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                     {staff.role.name}
                   </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                ${staff.salary.toLocaleString()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div className="flex space-x-3">
-                                    <button onClick={() => handleEditClick(staff)}
-                                            className="text-blue-600 hover:text-blue-900">
-                                        <i className="fa fa-edit text-lg"></i>
-                                    </button>
-                                    <button onClick={() => handleDeleteClick(staff)}
-                                            className="text-red-600 hover:text-red-900">
-                                        <i className="fa fa-trash text-lg"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-            </div>
-            {selectedStaff && (
-                <EditStaffModal
-                    isOpen={isEditModalOpen}
-                    onClose={() => {setEditModalOpen(false); setSelectedStaff(null)} }
-                    staffMember={selectedStaff}
-                    onSave={handleSave}
-                />
-            )}
-            <DeleteStaffModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
-                onDelete={handleDelete}
-            />
-        </div>
+                </td>
 
-    );
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {staff.salary.toLocaleString("uz-UZ")} so‘m
+                </td>
+
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => handleEditClick(staff)}
+                      className="text-blue-600 hover:text-blue-900"
+                    >
+                      <i className="fa fa-edit text-lg"></i>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(staff)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      <i className="fa fa-trash text-lg"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <EditStaffModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setSelectedStaff(null);
+        }}
+        staffMember={selectedStaff}
+        onSave={handleSave}
+      />
+
+      <DeleteStaffModal
+              isOpen={isDeleteModalOpen}
+              onClose={() => setDeleteModalOpen(false)}
+              onDelete={handleDelete} lang={"uz"}      />
+    </div>
+  );
 };
 
 export default StaffList;
