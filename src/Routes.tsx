@@ -221,6 +221,36 @@ const teacher: ReactNode = (
         <Route path='*' element={<Page404/>}/>
     </Routes>);
 
+const support: ReactNode = (
+    <Routes>
+        <Route path="/" element={<TCHHomePage/>}/>
+        <Route path="/settings" element={<SettingsPage/>}/>
+        <Route path="/videos" element={<TCHVideos/>}/>
+        {/*<Route path="/videos/:id" element={<TCHVideosModulePage/>}/>*/}
+        <Route path="/videos/:id/:id" element={<TCHVideos/>}/>
+        <Route path="/topics" element={<TCHTopicsPage/>}/>
+        <Route path="/topics/:id" element={<TCHTopicsSingle/>}/>
+        <Route path="/topics/:groupId/:id" element={<TCHTopicsSingleDetail/>}/>
+        <Route path="/topics/attandance" element={<TCHTopicsAttendance/>}/>
+        <Route path="/attendance" element={<TCHAttandancePage/>}/>
+        <Route path="/attendance/:id" element={<TCHAttendanceDetailPage/>}/>
+        <Route path='/change-password' element={<ChangePasswordPage/>}/>
+        <Route path='/reset-password' element={<ResetPasswordPage/>}/>
+        <Route path='/news' element={<News/>}/>
+        <Route path='/news/:id' element={<NewsSingle/>}/>
+        <Route path='/library' element={<LibraryPage/>}/>
+        <Route path='/login' element={<Login/>}/>
+        <Route path='/forgot' element={<Forgot/>}/>
+        <Route path='/groups' element={<TCHGroupPage/>}/>
+        <Route path='/groups/:id' element={<TCHGroupList/>}/>
+        <Route path='/groups/:id/:id' element={<StudentDetailPageAll/>}/>
+        <Route path='/classschedule' element={<TCHShedule/>}/>
+        <Route path='/classschedule/:id' element={<TCHSheduleSingle/>}/>
+        {/* <Route path='/debts/:id' element={<DebtorsPageUsers/>}/> */}
+        {/* <Route path='/payments' element={<STPaymentsPage/>}/> */}
+        <Route path='*' element={<Page404/>}/>
+    </Routes>);
+
 const accountant: ReactNode = (
     <Routes>
         <Route path="/" element={<ACHomePage/>}/>
@@ -263,6 +293,7 @@ const RoutesMap = new Map<Roles, ReactNode>(
         [Roles.Manager, manager],
         [Roles.Student, student],
         [Roles.Teacher, teacher],
+        [Roles.Support, support],
         [Roles.Accountant, accountant],
     ]
 )

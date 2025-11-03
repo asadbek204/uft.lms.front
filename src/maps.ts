@@ -159,6 +159,17 @@ const PagesMap = new Map<Roles, Pages[]>([
         Pages.Settings
     ]],
 
+    
+    [Roles.Support, [
+        Pages.Groups,
+        Pages.Topics,
+        Pages.Attendance,
+        Pages.ClassSchedule,
+        Pages.Library,
+        Pages.News,
+        Pages.Settings
+    ]],
+
     [Roles.Student, [
         Pages.Topics,
         Pages.Payments,
