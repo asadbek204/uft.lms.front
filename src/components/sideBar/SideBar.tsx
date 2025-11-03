@@ -4,7 +4,7 @@ import {
   useContext,
   useEffect,
   useState,
-  useRef
+  useRef,
 } from "react";
 import { langs, Langs, Pages } from "../../enums";
 import { Icons, Translator } from "../../maps";
@@ -34,8 +34,8 @@ function SideBar({ pages, setLang, setPage }: TSideBarProperties) {
   const { lang, role, userId } = useContext(GlobalContext);
   const [expanded, setExpanded] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('theme') === 'dark';
-});
+    return localStorage.getItem("theme") === "dark";
+  });
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenLang, setIsOpenLang] = useState(false);
   const [user, setUser] = useState<TUser>({ first_name: "", last_name: "" });
@@ -95,11 +95,10 @@ function SideBar({ pages, setLang, setPage }: TSideBarProperties) {
     fetchUser();
   }, [userId]);
 
-const toggleDarkMode = () => {
-  setIsDarkMode((prevMode) => !prevMode);
-  window.location.reload(); 
-};
-
+  const toggleDarkMode = () => {
+    setIsDarkMode((prevMode) => !prevMode);
+    window.location.reload();
+  };
 
   const handleAuthAction = () => {
     if (role === "guest") {
@@ -151,22 +150,26 @@ const toggleDarkMode = () => {
 
   return (
     <>
-     {expanded && (
-    <div className=" md:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={toggleSidebar}></div>
-  )}
+      {expanded && (
+        <div
+          className=" md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={toggleSidebar}
+        ></div>
+      )}
       <div className="absolute  mb-24 top-0 flex justify-between left-0 w-full md:hidden p-2  bg-white text-black z-50 dark:bg-gray-700">
-      <button
-  className={` -ml-52 rounded-lg bg-gray-50 hover:bg-gray-100 outline-0 dark:bg-gray-400 ${
-    expanded ? "block" : "hidden" 
-  } md:hidden`}
->
-</button>
-<button
-  onClick={toggleSidebar} 
-  className={`transition-transform text-black dark:text-white duration-300 ${expanded ? 'transform rotate-180' : 'transform rotate-0'}`}
->
-  <i className={`fas ${expanded ? '' : 'fa-bars'}`}></i>
-</button>
+        <button
+          className={` -ml-52 rounded-lg bg-gray-50 hover:bg-gray-100 outline-0 dark:bg-gray-400 ${
+            expanded ? "block" : "hidden"
+          } md:hidden`}
+        ></button>
+        <button
+          onClick={toggleSidebar}
+          className={`transition-transform text-black dark:text-white duration-300 ${
+            expanded ? "transform rotate-180" : "transform rotate-0"
+          }`}
+        >
+          <i className={`fas ${expanded ? "" : "fa-bars"}`}></i>
+        </button>
         <Link to="/">
           <img
             onClick={() => setPage(Pages.Home)}
@@ -178,13 +181,13 @@ const toggleDarkMode = () => {
         <div></div>
       </div>
       <aside
-      ref={sidebarRef}
-      className={`h-screen ${
-        expanded ? "block" : "hidden"
-      } lg:block absolute z-40 md:static  md:mt-0 transition-shadow duration-300 ${
-        expanded ? "shadow-lg" : ""
-      }`}
-    >
+        ref={sidebarRef}
+        className={`h-screen ${
+          expanded ? "block" : "hidden"
+        } lg:block absolute z-40 md:static  md:mt-0 transition-shadow duration-300 ${
+          expanded ? "shadow-lg" : ""
+        }`}
+      >
         <nav
           className={`h-screen overflow-y-hidden md:h-full inline-flex bg-white flex-col border-r dark:border-slate-950 drop-shadow-lg dark:text-dark dark:bg-gray-800`}
         >
@@ -205,10 +208,19 @@ const toggleDarkMode = () => {
                 alt="logo"
               />
             </Link>
-            <button onClick={() => setExpanded(curr => !curr)}
-                    className="hidden lg:block p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 outline-0 dark:bg-gray-400">
-                {expanded ? <img className="filter dark:invert" src={JustifyRegular} alt=""/> :
-                    <img className="filter dark:invert" src={LeftRegular} alt=""/>}
+            <button
+              onClick={() => setExpanded((curr) => !curr)}
+              className="hidden lg:block p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 outline-0 dark:bg-gray-400"
+            >
+              {expanded ? (
+                <img
+                  className="filter dark:invert"
+                  src={JustifyRegular}
+                  alt=""
+                />
+              ) : (
+                <img className="filter dark:invert" src={LeftRegular} alt="" />
+              )}
             </button>
           </div>
 
@@ -218,7 +230,7 @@ const toggleDarkMode = () => {
             } flex-1 content-center relative`}
           >
             <ul className="mb-3 px-5">
-              {pages.map((item) => {
+              {pages?.map((item) => {
                 const [key, pageName, icon] = getPageInfo(item);
                 return (
                   <Link
@@ -302,7 +314,7 @@ const toggleDarkMode = () => {
                   </button>
                   {isOpenLang && (
                     <ul className="dropdown-menu1 bg-white dark:bg-black flex gap-2 rounded">
-                      {langs.map((el) => (
+                      {langs?.map((el) => (
                         <button
                           key={"lang-" + el}
                           className={`my-1 px-3 rounded ${
@@ -317,11 +329,11 @@ const toggleDarkMode = () => {
                       ))}
                     </ul>
                   )}
-                </div>              
-                  <DarkModeToggle
-                    isDarkMode={isDarkMode}
-                    toggleDarkMode={toggleDarkMode}
-                  />         
+                </div>
+                <DarkModeToggle
+                  isDarkMode={isDarkMode}
+                  toggleDarkMode={toggleDarkMode}
+                />
                 <div className="dropdown">
                   <button
                     className="px-1 py-1.5 rounded-lg bg-gray-300 hover:bg-gray-400 dark:bg-gray-400"
@@ -356,5 +368,3 @@ const toggleDarkMode = () => {
 }
 
 export default SideBar;
-
-
