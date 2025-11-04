@@ -22,7 +22,5 @@ jobs:
         script: |
           cd /var/www/demo.ba.lms.uft.uz/eco_front/
           git pull origin main
-          npm i --no-audit
-          npm run build
           cd ..
           make down && docker rmi backdemobalms-frontend:latest && make up
