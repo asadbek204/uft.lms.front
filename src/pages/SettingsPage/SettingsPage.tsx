@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
+import  { useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { Langs, Roles } from "../../enums";
+import { Langs } from "../../enums";
 import { GlobalContext, TGlobalContext } from "../../App";
 
 type TSettingsComponentContent = {
@@ -32,19 +32,19 @@ const contentsMap = new Map<Langs, TSettingsComponentContent>([
 ]);
 
 const SettingsPage = () => {
-    const rolesJSON = window.localStorage.getItem('roles');
-    const roles: string[] = rolesJSON ? JSON.parse(rolesJSON) : [];
+    // const rolesJSON = window.localStorage.getItem('roles');
+    // const roles: string[] = rolesJSON ? JSON.parse(rolesJSON) : [];
 
-    const { lang, role, setRole } = useContext(GlobalContext) as TGlobalContext;
+    const { lang } = useContext(GlobalContext) as TGlobalContext;
     const contents = contentsMap.get(lang) as TSettingsComponentContent;
 
-    const handleRoleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const newRole = event.target.value;
-        if (setRole) {
-            setRole(newRole as Roles);
-            window.localStorage.setItem('role', newRole);
-        }
-    };
+    // const handleRoleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    //     const newRole = event.target.value;
+    //     if (setRole) {
+    //         setRole(newRole as Roles);
+    //         window.localStorage.setItem('role', newRole);
+    //     }
+    // };
 
     return (
         <div className="mt-14 md:mt-0 text-center flex flex-col items-center mx-auto">

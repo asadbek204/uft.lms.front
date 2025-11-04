@@ -273,7 +273,7 @@ const GroupSingle: React.FC = () => {
                                             <td className="border border-slate-600 sm:font-sm sm:text-base py-1">{index + 1}</td>
                                             <td className="border border-slate-600 font-sm text-base 2xl:text-xl py-1 duration-300 ease-in-out hover:text-blue-400">
                                                 <Link to={`${student.id}`}>
-                                                    {` ${student.user.sure_name}  ${student.user.first_name} ${student.user.last_name}`}
+                                                    {` ${student.user.last_name}  ${student.user.first_name} ${student.user.sure_name}`}
                                                 </Link>
                                             </td>
                                             <td className="border border-slate-600 sm:font-sm  text-red-700 sm:text-base py-1">{formatNumber(debt)}</td>

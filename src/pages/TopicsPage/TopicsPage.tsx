@@ -36,7 +36,40 @@ const contentsMap = new Map<Langs, TTopicsComponentContent>([
       toast2: "O‘chirishda xatolik",
     },
   ],
+  [
+    Langs.RU,
+    {
+      title: "Учебный план",
+      text: "Список файлов, загруженных для выбранного курса",
+      filePlaceholder: "Выберите файл",
+      errorSelectFile: "Пожалуйста, выберите файл",
+      errorFile: "Произошла ошибка при выборе файла",
+      successMessage: "Файл успешно загружен",
+      chooseFile: "Выберите файл",
+      noFileChosen: "Файл не выбран",
+      save: "Сохранить",
+      toast1: "Курс удалён",
+      toast2: "Ошибка при удалении",
+    },
+  ],
+  [
+    Langs.EN,
+    {
+      title: "Syllabus",
+      text: "List of uploaded files for the selected course",
+      filePlaceholder: "Select file",
+      errorSelectFile: "Please select a file",
+      errorFile: "Error occurred while selecting the file",
+      successMessage: "File uploaded successfully",
+      chooseFile: "Choose file",
+      noFileChosen: "No file chosen",
+      save: "Save",
+      toast1: "Course deleted",
+      toast2: "Error while deleting",
+    },
+  ],
 ]);
+
 
 type TSyllabus = {
   id: number;
@@ -180,31 +213,35 @@ function TCHTopicsPage() {
                         <th className="py-2 px-3 border-b">Yuklab olish</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {
-                        <tr
-                          key={course?.syllabus?.id}
-                          className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                        >
-                          {/* <td className="py-2 px-3 border-b">{i + 1}</td> */}
-                          <td className="py-2 px-3 border-b">
-                            {"Noma'lum fayl"}
-                          </td>
-                          <td className="py-2 px-3 border-b">
-                            {course?.syllabus?.description || "-"}
-                          </td>
-                          <td className="py-2 px-3 border-b">
-                            <a
-                              href={course?.syllabus?.file}
-                              target="_blank"
-                              className="text-blue-500 hover:underline"
-                            >
-                              Yuklab olish
-                            </a>
-                          </td>
-                        </tr>
-                      }
-                    </tbody>
+                   <tbody>
+  {course.syllabus && course.syllabus.length > 0 ? (
+    course.syllabus.map((item) => (
+      <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+        <td className="py-2 px-3 border-b">{item.path || "Noma'lum fayl"}</td>
+        <td className="py-2 px-3 border-b">
+          {item.description || "-"}
+        </td>
+        <td className="py-2 px-3 border-b">
+          <a
+            href={item.file || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            Yuklab olish
+          </a>
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan={3} className="text-center py-3">
+        Fayl topilmadi
+      </td>
+    </tr>
+  )}
+</tbody>
+
                   </table>
                 </div>
               )}

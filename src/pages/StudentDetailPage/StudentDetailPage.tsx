@@ -298,12 +298,10 @@ function DebtorsPageUsers() {
           setGroups(list.data.filter((g: TGroup) => g.status));
         }
       } catch (e) {
-        // ignore quietly; group move UI will just be empty
       }
     })();
   }, [id, isEditing]);
 
-  // Close move menu on outside click
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -407,14 +405,14 @@ function DebtorsPageUsers() {
       const data = {
         role: Number(roleId),
         salary: salary,
-        user: userId, // from URL params
+        user: userId, 
         manager: Number(managerId),
       };
 
       await client.post("employees/attach/", data);
       toast.success("Role added successfully");
       setIsModalAddRoleOpen(false);
-      navigate(-1); //orqaga yurish
+      navigate(-1); 
     } catch (error) {
       toast.error("An error occurred while adding the role");
     }
@@ -428,14 +426,14 @@ function DebtorsPageUsers() {
     setIsModalOpen(false);
   };
 
-  const openAddNewRoleModal = () => {
-    setIsModalAddRoleOpen(true);
-  };
+  // const openAddNewRoleModal = () => {
+  //   setIsModalAddRoleOpen(true);
+  // };
 
   const closeAddNewRoleModal = () => {
     setIsModalAddRoleOpen(false);
   };
-  console.log(data);
+
 
   return (
     <div className="w-full overflow-y-hidden mt-12 md:mt-0">
@@ -448,12 +446,7 @@ function DebtorsPageUsers() {
             <i className="fa-solid fa-arrow-left text-black"></i>
           </button>
           <h1 className="text-2xl md:text-4xl font-bold font-Sora dark:text-customText leading-[40px]">
-            {data?.gender === "M"
-              ? contents.student
-              : data?.gender === "F"
-              ? contents.studentka
-              : ""}{" "}
-            {data.sure_name} {data.first_name} {data.last_name}
+            {data.last_name} {data.first_name} {data.sure_name}
           </h1>
 
           {!isEditing ? (
@@ -466,7 +459,6 @@ function DebtorsPageUsers() {
                   <i className="fa fa-pen"></i>
                 </button>
               )}
-              {/* Move to another group (desktop) */}
               {groups.length > 0 && (
                 <div className="relative ml-2">
                   <button
@@ -539,12 +531,12 @@ function DebtorsPageUsers() {
               )}
               {(role === "admin" || role === "manager") && (
                 <div>
-                  <button
+                  {/* <button
                     onClick={openAddNewRoleModal} // Open modal on delete button click
                     className="px-4 py-3 ml-2 text-white bg-green-500 rounded hover:bg-green-700"
                   >
                     <i className="fa fa-plus"></i>
-                  </button>
+                  </button> */}
                   <button
                     onClick={openDeleteModal} // Open modal on delete button click
                     className="px-4 py-3 ml-2 text-white bg-red-500 rounded hover:bg-red-700"
@@ -573,7 +565,7 @@ function DebtorsPageUsers() {
           <ConfirmDeleteModal
             isOpen={isModalOpen}
             onClose={closeDeleteModal}
-            onConfirm={handleDelete} // Call delete on confirm
+            onConfirm={handleDelete} 
           />
           <AddNewRole
             isOpen={isModalAddRoleOpen}
@@ -590,7 +582,6 @@ function DebtorsPageUsers() {
             >
               <i className="fa fa-pen"></i>
             </button>
-            {/* Move to another group (mobile) */}
             {groups.length > 0 && (
               <div className="relative">
                 <button
@@ -660,7 +651,7 @@ function DebtorsPageUsers() {
             )}
             {(role === "admin" || role === "manager") && (
               <button
-                onClick={openDeleteModal} // Open modal on delete button click
+                onClick={openDeleteModal} 
                 className="px-4 py-3 ml-2 text-white bg-red-500 rounded hover:bg-red-700"
               >
                 <i className="fa fa-trash"></i>
@@ -742,7 +733,7 @@ function DebtorsPageUsers() {
                         <input
                           type="text"
                           name="last_name"
-                          defaultValue={formData.sure_name}
+                          defaultValue={formData.last_name}
                           onChange={handleChange}
                           className="block h-10 px-4 w-full mt-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-300"
                         />
@@ -752,12 +743,12 @@ function DebtorsPageUsers() {
                         <input
                           type="text"
                           name="sure_name"
-                          defaultValue={formData.last_name}
+                          defaultValue={formData.sure_name}
                           onChange={handleChange}
                           className="block h-10 px-4 w-full mt-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-300"
                         />
                       </label>
-                      <label className="block text-gray-700 dark:text-gray-300">
+                      {/* <label className="block text-gray-700 dark:text-gray-300">
                         <strong>{contents.gender}</strong>
                         <select
                           name="gender"
@@ -769,7 +760,7 @@ function DebtorsPageUsers() {
                           <option value="M">{contents.male}</option>
                           <option value="F">{contents.female}</option>
                         </select>
-                      </label>
+                      </label> */}
                       <label className="block text-gray-700 dark:text-gray-300">
                         <strong>{contents.passport}</strong>
                         <input
@@ -804,18 +795,6 @@ function DebtorsPageUsers() {
                           className="block h-10 px-4 w-full mt-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-300"
                         />
                       </label>
-                      <label className="block text-gray-700 dark:text-gray-300">
-                        <strong>{contents.price}</strong>
-                        <input
-                          type="text"
-                          name="price"
-                          maxLength={14}
-                          minLength={14}
-                          defaultValue={formData.price.slice(0, -3)}
-                          onChange={handleChange}
-                          className="block h-10 px-4 w-full mt-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-300"
-                        />
-                      </label>
                     </div>
                   ) : (
                     <div>
@@ -830,19 +809,19 @@ function DebtorsPageUsers() {
                         {data.first_name}
                       </p>
                       <p className=" dark:text-customText">
-                        <strong>{contents.last_name}</strong>: {data.sure_name}
+                        <strong>{contents.last_name}</strong>: {data.last_name}
                       </p>
                       <p className=" dark:text-customText">
-                        <strong>{contents.sure_name}</strong>: {data.last_name}
+                        <strong>{contents.sure_name}</strong>: {data.sure_name}
                       </p>
-                      <p className=" dark:text-customText">
+                      {/* <p className=" dark:text-customText">
                         <strong>{contents.gender}</strong>:{" "}
                         {data?.gender === "M"
                           ? contents.male
                           : data?.gender === "F"
                           ? contents.female
                           : ""}
-                      </p>
+                      </p> */}
                       <p className=" dark:text-customText">
                         <strong>{contents.passport}</strong>: {data.passport}
                       </p>

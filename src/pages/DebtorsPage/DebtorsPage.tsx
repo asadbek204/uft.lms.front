@@ -168,20 +168,18 @@ function DebtorsPage() {
 
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
 
-        // Set the width of each column
         worksheet["!cols"] = [
-            {wpx: 50}, // T/r
-            {wpx: 200}, // Full name
-            {wpx: 100}, // Group
-            {wpx: 100}, // Debt
-            {wpx: 100}, // Paid
-            {wpx: 100}  // Total
+            {wpx: 50}, 
+            {wpx: 200}, 
+            {wpx: 100}, 
+            {wpx: 100}, 
+            {wpx: 100},
+            {wpx: 100}  
         ];
 
-        // Set the height of each row
         const rowHeights = [];
         for (let i = 0; i < 100; i++) {
-            rowHeights.push({hpx: 34}); // Set height for each row
+            rowHeights.push({hpx: 34});
         }
 
         worksheet["!rows"] = rowHeights;
@@ -218,7 +216,6 @@ function DebtorsPage() {
         const element = scrollRef.current as HTMLElement;
         element.addEventListener("scroll", handleScroll);
 
-        // Cleanup the event listener
         return () => {
             element.removeEventListener("scroll", handleScroll);
         };
