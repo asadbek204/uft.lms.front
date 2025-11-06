@@ -94,12 +94,12 @@ const STTopicsItem: React.FC = () => {
         <h1 className="2xl:text-4xl text-3xl font-bold  dark:text-customText">
           {contents.title}
         </h1>
-        {/* <Link to={`/topics-attandance/${id}`}>
+        <Link to={`/topics-attandance/${id}`}>
           <button className="w-20 h-12 bg-blue-400 text-slate-200 hover:text-black  hover:bg-gray-300  rounded">
             Yo'qlama
           </button>
-        </Link> */}
-        <div></div>
+        </Link>
+        {/* <div></div> */}
       </div>
       <div>
         <h3 className="text-gray-500  text-center pb-8">{contents.text}</h3>

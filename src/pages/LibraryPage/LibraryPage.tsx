@@ -27,33 +27,22 @@ type TLibraryComponentContent = {
 const contentsMap = new Map<Langs, TLibraryComponentContent>([
   [
     Langs.UZ,
-    {
-      title: "Kitoblar",
-      button: "Kitobni yuklash",
-      categories: "Barcha kategoriyalar",
-    },
+    { title: "Kitoblar", button: "Kitobni yuklash", categories: "Barcha kategoriyalar" },
   ],
   [
     Langs.RU,
-    {
-      title: "Книги",
-      button: "СКАЧАТЬ КНИГУ",
-      categories: "Все категории",
-    },
+    { title: "Книги", button: "СКАЧАТЬ КНИГУ", categories: "Все категории" },
   ],
   [
     Langs.EN,
-    {
-      title: "Books",
-      button: "Download book",
-      categories: "All categories",
-    },
+    { title: "Books", button: "Download book", categories: "All categories" },
   ],
 ]);
 
 function LibraryPage() {
   const { role, lang } = useContext(GlobalContext);
   const contents = contentsMap.get(lang) as TLibraryComponentContent;
+
   const [showModal, setShowModal] = useState<boolean>(false);
   const [books, setBooks] = useState<TBooks[]>([]);
   const [sortCategory, setSortCategory] = useState<string>("");
@@ -68,14 +57,13 @@ function LibraryPage() {
 
   // Kitoblarni kategoriya bo'yicha saralash
   const sortBooksByCategory = (booksList: TBooks[], category: string) => {
+    if (!Array.isArray(booksList)) return;
+
     const filtered = category
       ? booksList.filter((book) => book.category === category)
       : booksList;
 
-    const sorted = [...filtered].sort((a, b) =>
-      a.category.localeCompare(b.category)
-    );
-
+    const sorted = [...filtered].sort((a, b) => a.category.localeCompare(b.category));
     setBooks(sorted);
   };
 
@@ -85,7 +73,7 @@ function LibraryPage() {
       try {
         const response = await client.get("books/");
         if (Array.isArray(response.data)) {
-          const data: TBooks[] = response.data.map((book) => ({
+          const data: TBooks[] = response.data.map((book: any) => ({
             id: book.id,
             name: book.name,
             image: book.image,
@@ -95,21 +83,20 @@ function LibraryPage() {
             year: book.year,
             language: book.language,
             category: book.category,
-            downloadUrl: book.file?.file || book.file || "", // Xavfsiz olish
+            downloadUrl: book.file?.file || book.file || "",
           }));
-          
-          const uniqueCategories = Array.from(
-            new Set(data.map((book) => book.category))
-          );
+
+          setBooks(data);
+
+          const uniqueCategories = Array.from(new Set(data.map((book) => book.category)));
           setCategories(uniqueCategories);
-          setBooks(data); // Boshlang'ich holatda barcha kitoblarni ko'rsatish
         }
       } catch (err) {
         console.error("Failed to fetch books:", err);
       }
     };
     fetchBooks();
-  }, []); // Faqat bir marta ishga tushadi
+  }, []);
 
   // Kategoriya o'zgarganda saralash
   useEffect(() => {
@@ -120,6 +107,8 @@ function LibraryPage() {
 
   // Yangi kitob qo'shilganda
   const handleUpdate = (newItem: any) => {
+    if (!newItem) return;
+
     const mappedNew: TBooks = {
       id: newItem.id,
       name: newItem.name,
@@ -135,13 +124,11 @@ function LibraryPage() {
 
     setBooks((prevBooks) => {
       const updatedBooks = [mappedNew, ...prevBooks];
-      
+
       // Kategoriyalarni yangilash
-      const uniqueCategories = Array.from(
-        new Set(updatedBooks.map((book) => book.category))
-      );
+      const uniqueCategories = Array.from(new Set(updatedBooks.map((book) => book.category)));
       setCategories(uniqueCategories);
-      
+
       return updatedBooks;
     });
   };
@@ -155,10 +142,7 @@ function LibraryPage() {
     <div className="w-full mt-12 md:mt-0">
       <div className="header w-full flex justify-end">
         <div className="m-5 flex w-full justify-between items-center">
-          <div></div>
-          <h1 className="text-2xl lg:text-4xl font-bold dark:text-customText">
-            {contents.title}
-          </h1>
+          <h1 className="text-2xl lg:text-4xl font-bold dark:text-customText">{contents.title}</h1>
           <div className="flex gap-4 justify-center mb-4">
             <select
               value={sortCategory}
@@ -183,7 +167,8 @@ function LibraryPage() {
           </div>
         </div>
       </div>
-      
+
+      {/* Mobile category select */}
       <div className="flex mr-5 justify-end mb-6 items-center md:hidden">
         <select
           value={sortCategory}
@@ -198,13 +183,14 @@ function LibraryPage() {
           ))}
         </select>
       </div>
-      
+
+      {/* Kitoblar */}
       <div className="2xl:h-[88%] h-[75%] overflow-y-auto">
-        {books.map((content) => (
+        {Array.isArray(books) && books.map((content) => (
           <div
-            style={{ boxShadow: "1px 5px 6px rgba(0, 0, 0, 0.15)" }}
             key={content.id}
             className="w-5/6 flex flex-col mx-auto rounded-xl mb-5 bg-white dark:bg-gray-700"
+            style={{ boxShadow: "1px 5px 6px rgba(0, 0, 0, 0.15)" }}
           >
             <div className="flex flex-col md:flex-row">
               <div
@@ -217,10 +203,10 @@ function LibraryPage() {
                 }}
               >
                 <img
-                  style={{ borderRadius: "inherit" }}
-                  className="rounded-s-xl w-full h-full"
                   src={content.image}
                   alt={content.name}
+                  className="rounded-s-xl w-full h-full"
+                  style={{ borderRadius: "inherit" }}
                 />
               </div>
               <div className="w-full flex justify-between">
@@ -228,20 +214,13 @@ function LibraryPage() {
                   <h1 className="uppercase mt-2 mb-2 font-bold text-xl cursor-default border-gray-300 dark:text-white">
                     {content.name}
                   </h1>
-                  <span className="text-gray-800 mb-2 dark:text-amber-50">
-                    {content.author}
-                  </span>
+                  <span className="text-gray-800 mb-2 dark:text-amber-50">{content.author}</span>
                   <p className="dark:text-white font-serif">
                     {content.description.slice(0, 150)}
                     {content.description.length > 150 ? "..." : ""}
                   </p>
                   <div>
-                    <a
-                      href={content.downloadUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download
-                    >
+                    <a href={content.downloadUrl} target="_blank" rel="noopener noreferrer" download>
                       <button className="py-2 mb-3 mt-3 px-4 bg-blue-500 text-white rounded-2xl hover:bg-blue-600">
                         {contents.button}
                       </button>
@@ -277,13 +256,8 @@ function LibraryPage() {
           </div>
         ))}
       </div>
-      
-      <Modal
-        isVisible={showModal}
-        onClose={() => setShowModal(false)}
-        onUpdate={handleUpdate}
-      />
-      
+
+      <Modal isVisible={showModal} onClose={() => setShowModal(false)} onUpdate={handleUpdate} />
       <ConfirmDeleteModal
         isVisible={isModalVisible}
         content={bookToDelete}

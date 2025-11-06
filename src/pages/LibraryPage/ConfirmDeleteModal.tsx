@@ -46,16 +46,22 @@ interface ConfirmDeleteModalProps {
 const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ isVisible, content, onDelete, onClose }) => {
     const { lang } = useContext(GlobalContext);
     const contents = contentsMap.get(lang) as TNewsComponentContent;
-    const deleteBook = async (id: number) => {
-        await client.delete(`books/${id}/`)
-            .then(() => {
-                toast.success(contents.toast1);
-                onDelete(id);
-            })
-            .catch(() => {
-                toast.error(contents.toast2);
-            });
-    };
+   const deleteBook = async (id: number | undefined) => {
+  if (!id) {
+    console.error("Book ID undefined, cannot delete!");
+    toast.error("Kitobni o‘chirish uchun ID topilmadi");
+    return;
+  }
+  await client.delete(`books/${id}/`)
+    .then(() => {
+      toast.success(contents.toast1);
+      onDelete(id);
+    })
+    .catch(() => {
+      toast.error(contents.toast2);
+    });
+};
+
     const handleConfirm = () => {
         if (content !== null) {
             deleteBook(content);

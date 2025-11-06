@@ -17,6 +17,7 @@ type TTopicsComponentContent = {
   save: string;
   toast1: string;
   toast2: string;
+  file_not_found: string;
 };
 
 const contentsMap = new Map<Langs, TTopicsComponentContent>([
@@ -24,48 +25,51 @@ const contentsMap = new Map<Langs, TTopicsComponentContent>([
     Langs.UZ,
     {
       title: "O'quv rejasi",
-      text: "Tanlangan kurs uchun yuklangan fayllar ro‘yxati",
+      text: "Siz tanlagan dars dasturini to'liq yuklab olishingiz mumkin",
       filePlaceholder: "Faylni tanlang",
-      errorSelectFile: "Iltimos, fayl tanlang",
-      errorFile: "Fayl tanlashda xatolik yuz berdi",
-      successMessage: "Fayl muvaffaqiyatli yuklandi",
+      errorSelectFile: "Iltimos file tanlang",
+      errorFile: "File tanlashda xatolik yuz berdi",
+      successMessage: "Ma'lumot muvaffaqqiyatli yuborildi",
       chooseFile: "Faylni tanlang",
       noFileChosen: "Fayl tanlanmagan",
       save: "Saqlash",
-      toast1: "Kurs o‘chirildi",
-      toast2: "O‘chirishda xatolik",
+      toast1: "Kurs muvaffaqiyatli o'chirildi",
+      toast2: "O'chirishda xato yuz berdi",
+      file_not_found: "Fayl mavjud emas!",
     },
   ],
   [
     Langs.RU,
     {
       title: "Учебный план",
-      text: "Список файлов, загруженных для выбранного курса",
+      text: "Вы можете скачать полную программу по вашему выбору",
       filePlaceholder: "Выберите файл",
       errorSelectFile: "Пожалуйста, выберите файл",
       errorFile: "Произошла ошибка при выборе файла",
-      successMessage: "Файл успешно загружен",
+      successMessage: "Информация успешно отправлена",
       chooseFile: "Выберите файл",
       noFileChosen: "Файл не выбран",
-      save: "Сохранить",
-      toast1: "Курс удалён",
-      toast2: "Ошибка при удалении",
+      save: "Сохранять",
+      toast1: "Курс успешно удален",
+      toast2: "При удалении произошла ошибка",
+      file_not_found: "Файл не найден!",
     },
   ],
   [
     Langs.EN,
     {
-      title: "Syllabus",
-      text: "List of uploaded files for the selected course",
+      title: "Curriculum",
+      text: "You can download the complete syllabus of your choice",
       filePlaceholder: "Select file",
       errorSelectFile: "Please select a file",
-      errorFile: "Error occurred while selecting the file",
-      successMessage: "File uploaded successfully",
+      errorFile: "An error occurred while selecting the file",
+      successMessage: "Information successfully submitted",
       chooseFile: "Choose file",
       noFileChosen: "No file chosen",
       save: "Save",
-      toast1: "Course deleted",
-      toast2: "Error while deleting",
+      toast1: "Course deleted successfully",
+      toast2: "An error occurred during deletion",
+      file_not_found: "File not found!",
     },
   ],
 ]);
@@ -75,185 +79,165 @@ type TSyllabus = {
   file: string | null;
   description: string;
   path: string;
+  main: unknown; // Replace any with unknown or a more specific type if known
 };
 
 type TCourses = {
   id: number;
   name: string;
-  syllabus: TSyllabus[];
+  syllabus: TSyllabus;
 };
 
-function TCHTopicsPage() {
+const TCHTopicsPage: React.FC = () => {
   const { lang } = useContext(GlobalContext);
-  const contents = contentsMap.get(lang)!;
+  const contents = contentsMap.get(lang) as TTopicsComponentContent;
 
   const [courses, setCourses] = useState<TCourses[]>([]);
-  const [openId, setOpenId] = useState<number | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [editingCourseId, setEditingCourseId] = useState<number | null>(null);
+  const [newFileInput, setNewFileInput] = useState<HTMLInputElement | null>(
+    null
+  );
   const [fileName, setFileName] = useState<string>("");
-
-  const fetchCourses = async () => {
-    try {
-      const response = await client.get("education/course/list/");
-      setCourses(response.data as TCourses[]);
-    } catch (error) {
-      toast.error(contents.errorFile);
-    }
-  };
+  const [upToDate, setUpToDate] = useState<boolean>(false);
 
   useEffect(() => {
-    fetchCourses();
-  }, []);
+    (async () => {
+      try {
+        const response = await client.get("education/course/list/");
+        console.log(response);
+        setCourses(response.data as TCourses[]);
+      } catch (error) {
+        toast.error(contents.errorFile);
+      }
+    })();
+  }, [upToDate, contents.errorFile]);
 
-  const handleAccordionToggle = (id: number) => {
-    setOpenId((prev) => (prev === id ? null : id));
+  const handlePenClick = (id: number) => {
+    setEditingCourseId((prevId) => (prevId === id ? null : id));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setSelectedFile(e.target.files[0]);
-      setFileName(e.target.files[0].name);
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setNewFileInput(event.target);
+      setFileName(event.target.files[0].name);
     }
   };
 
-  const handleFileUpload = async (id: number) => {
-    if (!selectedFile) {
-      toast.error(contents.errorSelectFile);
-      return;
-    }
+  const deleteCourses = (id: number) => {
+    setCourses(courses.filter((course) => course.id !== id));
+  };
 
-    const formData = new FormData();
-    formData.append("syllabus_file", selectedFile);
+  const handleFileSubmit = (id: number) => {
+    (async () => {
+      if (!newFileInput?.files) {
+        toast.error(contents.errorSelectFile);
+        return;
+      }
 
-    try {
-      await client.patch(`education/course/update/${id}/`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.success(contents.successMessage);
-      fetchCourses();
-      setSelectedFile(null);
+      const formData = new FormData();
+      formData.append("syllabus_file", newFileInput.files[0]);
+
+      try {
+        await client.patch(`education/course/update/${id}/`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success(contents.successMessage);
+        setUpToDate((prev) => !prev);
+      } catch (err) {
+        toast.error(contents.errorFile);
+      }
+
+      setEditingCourseId(null);
+      setNewFileInput(null);
       setFileName("");
-    } catch {
-      toast.error(contents.errorFile);
-    }
-  };
-
-  const handleDeleteCourse = (id: number) => {
-    setCourses((prev) => prev.filter((course) => course.id !== id));
+    })();
   };
 
   return (
-    <div className="w-full mt-12 overflow-hidden">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold dark:text-white">{contents.title}</h1>
-        <p className="text-gray-500">{contents.text}</p>
+    <div className="w-full overflow-hidden mt-12 md:mt-0">
+      <div className="mx-5 my-5 w-full text-center flex flex-col gap-2">
+        <h1 className="2xl:text-4xl text-3xl font-bold dark:text-customText">
+          {contents.title}
+        </h1>
+        <h3 className="text-gray-500 pr-5 text-center pb-8">{contents.text}</h3>
       </div>
 
-      <div className="w-5/6 mx-auto overflow-y-scroll 2xl:h-[88%] h-[75%] pb-8">
-        {courses.map((course) => {
-          const isOpen = openId === course.id;
-          return (
-            <div
-              key={course.id}
-              className="mb-5 rounded-md bg-white dark:bg-gray-800 shadow-md overflow-hidden"
-            >
-              {/* Header */}
-              <div
-                className="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => handleAccordionToggle(course.id)}
+      <div className="2xl:h-[88%] h-[87%] overflow-y-auto">
+        {courses.map((content, index) => (
+          <div
+            key={index}
+            style={{ boxShadow: "1px 5px 6px rgba(0, 0, 0, 0.15)" }}
+            className="w-5/6 flex flex-col mx-auto mb-5 rounded-md bg-white dark:bg-gray-700"
+          >
+            <div className="flex justify-between ">
+              <a
+                target="_blank"
+                href={
+                  content.syllabus?.file ? content.syllabus.file : undefined
+                }
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  if (!content.syllabus?.file) {
+                    e.preventDefault(); 
+                    toast.warning(contents.file_not_found);
+                  }
+                }}
               >
-                <h2 className="font-semibold text-lg dark:text-white">
-                  {course.name}
-                </h2>
-                <div className="flex items-center gap-3">
+                <h1 className="block uppercase text-xl cursor-pointer border-gray-300 p-4 dark:text-white hover:text-blue-400 dark:hover:text-blue-400">
+                  {content.name}
+                </h1>
+              </a>
+
+              <div className="flex items-center">
+                <button
+                  className={`2xl:m-4 m-2 me-0 ${
+                    editingCourseId === content.id
+                      ? "bg-red-600"
+                      : "bg-yellow-500"
+                  } w-[30px] h-[30px] dark:text-gray-200 text-white rounded-md`}
+                  onClick={() => handlePenClick(content.id)}
+                >
                   <i
-                    className={`fa-solid fa-chevron-${
-                      isOpen ? "up" : "down"
-                    } text-gray-600 dark:text-gray-300`}
+                    className={`fa-solid ${
+                      editingCourseId === content.id ? "fa-close" : "fa-pen"
+                    }`}
                   />
-                  <ConfirmDeleteModal
-                    content={course.id}
-                    onDelete={handleDeleteCourse}
-                  />
-                </div>
+                </button>
+                <ConfirmDeleteModal
+                  content={content.id}
+                  onDelete={deleteCourses}
+                />
               </div>
-
-              {/* Accordion body */}
-              {isOpen && (
-                <div className="p-4 border-t border-gray-200 dark:border-gray-600 animate-fadeIn">
-                  {/* Upload */}
-                  <div className="flex flex-col md:flex-row items-center gap-3 mb-4">
-                    <label className="py-2 px-4 bg-gray-200 dark:bg-gray-700 rounded cursor-pointer text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600">
-                      {contents.chooseFile}
-                      <input
-                        type="file"
-                        onChange={handleFileChange}
-                        className="hidden"
-                      />
-                    </label>
-                    <span className="text-gray-600 dark:text-gray-300">
-                      {fileName || contents.noFileChosen}
-                    </span>
-                    <button
-                      onClick={() => handleFileUpload(course.id)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-                    >
-                      {contents.save}
-                    </button>
-                  </div>
-
-                  {/* Files table */}
-                  <table className="w-full border border-gray-300 dark:border-gray-600 text-left text-gray-700 dark:text-gray-200">
-                    <thead className="bg-gray-100 dark:bg-gray-700">
-                      <tr>
-                        {/* <th className="py-2 px-3 border-b">#</th> */}
-                        <th className="py-2 px-3 border-b">Fayl nomi</th>
-                        <th className="py-2 px-3 border-b">Tavsif</th>
-                        <th className="py-2 px-3 border-b">Yuklab olish</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {course.syllabus && course.syllabus.length > 0 ? (
-                        course.syllabus.map((item) => (
-                          <tr
-                            key={item.id}
-                            className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                          >
-                            <td className="py-2 px-3 border-b">
-                              {item.path || "Noma'lum fayl"}
-                            </td>
-                            <td className="py-2 px-3 border-b">
-                              {item.description || "-"}
-                            </td>
-                            <td className="py-2 px-3 border-b">
-                              <a
-                                href={item.file || "#"}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-500 hover:underline"
-                              >
-                                Yuklab olish
-                              </a>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={3} className="text-center py-3">
-                            Fayl topilmadi
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </div>
-          );
-        })}
+
+            {editingCourseId === content.id && (
+              <div className="py-2 mt-3 px-3 bg-white rounded flex flex-col items-center dark:bg-slate-800">
+                <div className="mt-2 flex items-center gap-3 justify-between">
+                  <label className="py-2 px-4 bg-gray-200 rounded cursor-pointer text-gray-800 hover:bg-gray-300 border border-slate-400 flex items-center">
+                    {contents.chooseFile}
+                    <input
+                      type="file"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-gray-600 dark:text-white">
+                    {fileName || contents.noFileChosen}
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleFileSubmit(content.id)}
+                  className="ml-3 bg-blue-500 text-white mt-3 p-2 rounded-md"
+                >
+                  {contents.save}
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
-}
+};
 
 export default TCHTopicsPage;

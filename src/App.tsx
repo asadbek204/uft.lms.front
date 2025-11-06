@@ -7,7 +7,7 @@ import RoutesMap from './Routes';
 import PagesMap from './maps.ts';
 import Login from './pages/Login/Login.tsx';
 import ForgotPassword from './pages/Forgot/Forgot.tsx';
-import StudentsFormOrg from './StudentsFormOrg.tsx';
+// import StudentsFormOrg from './StudentsFormOrg.tsx';
 import TCHTopicsAttendance from './TeacherRole/TCHTopicsPage/TCHTopicsSingle/TCHTopicsSingleDetail/TCHTopicsAttendance';
 
 export type TGlobalContext = {
@@ -101,7 +101,7 @@ function App() {
                     <Routes>
                         <Route path="/login" element={<Login/>}/>
                         <Route path="/forgot" element={<ForgotPassword/>}/>
-                        <Route path="/students-form/:id" element={<StudentsFormOrg/>}/>
+                        {/* <Route path="/students-form/:id" element={<StudentsFormOrg/>}/> */}
                         <Route path="/topics-attandance/:id" element={<TCHTopicsAttendance/>}/>
                         <Route path="/*" element={RoutesMap.get(role)}/>
                     </Routes>

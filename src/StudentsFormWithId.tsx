@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Form, Input, InputNumber, DatePicker, Button } from 'antd';
+import { Form, Input, InputNumber, Button } from 'antd';
 import InputMask from 'react-input-mask';
 import type { InputProps } from 'antd';
 import { toast } from "react-toastify";
@@ -9,11 +9,38 @@ import { GlobalContext } from './App';
 import { Langs } from "./enums";
 import { useParams } from 'react-router-dom';
 
-// Custom Phone Input Component
-const PhoneInput = (props: InputProps) => (
-    <InputMask mask="(99) 999-99-99" {...props}>
+
+const PhoneInput = (props: InputProps) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, "");
+    if (value.length > 9) value = value.slice(0, 9); 
+    const formattedValue = value.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, "($1) $2-$3-$4");
+    
+    props.onChange?.({
+      ...e,
+      target: { ...e.target, value: formattedValue },
+    });
+  };
+
+  return (
+    <InputMask
+      mask="(99) 999-99-99"
+      maskChar={null}
+      {...props}
+      onChange={handleChange}
+    >
         {/* @ts-expect-error - react-input-mask children type issue */}
-        {(inputProps: any) => <Input {...inputProps} addonBefore="+998" />}
+
+      {(inputProps: any) => <Input {...inputProps} addonBefore="+998" />}
+    </InputMask>
+  );
+};
+
+
+const DateInput = (props: InputProps) => (
+    <InputMask mask="99.99.9999" placeholder="DD.MM.YYYY" maskChar={null} {...props}>
+        {/* @ts-expect-error - react-input-mask children type issue */}
+        {(inputProps: any) => <Input {...inputProps} />}
     </InputMask>
 );
 
@@ -64,141 +91,154 @@ type TNewsComponentContent = {
 };
 
 const contentsMap = new Map<Langs, TNewsComponentContent>([
-    [Langs.UZ, {
-        invalid_passport: "Pasport raqami noto'g'ri! U 2 ta harfdan keyin 7 ta raqamdan iborat bo'lishi kerak",
-        invalid_pinfl: "JSHSHIR 14 sondan iborat bo'lishi kerak",
-        ivalid_value: "Qiymat notog'ri",
-        title: "Yangi o'quvchi qo'shish",
-        first_name: "Ism",
-        last_name: "Familiya",
-        sure_name: "Otasining ismi",
-        groups: "Guruh",
-        price: "To'lov summmasi",
-        refereed_by: "Yuborgan shaxs",
-        phone_number: "Telefon raqami",
-        gender: "Jinsi",
-        birthday: "Tug'ilgan sana",
-        passport: "Pasport",
-        pinfl: "JSHSHIR",
-        email: "Email",
-        password: "Parol",
-        status: "Holati",
-        submit: "Yuborish",
-        choose1: "Guruhni tanlang",
-        choose2: "Jinsini tanlang",
-        choose3: "Ta'lim tilini tanlang",
-        choose4: "Kursni tanlang",
-        man: "Erkak",
-        woman: "Ayol",
-        amount: "Summa",
-        discount: "Chegirma",
-        total: "Umumiy hisob",
-        course: "Kurs nomi",
-        address: "Manzil",
-        passport_address: "Pasport kim tomonidan berilgan",
-        education_language: "Ta'lim tili",
-        uzbek: "O'zbek tili",
-        russian: "Rus tili",
-        required: "Barcha maydonlarni to'dirish shart",
-        cfirst_name: 'Shartnoma tuzuvchining ismi',
-        clast_name: 'Shartnoma tuzuvchining familiyasi',
-        csure_name: 'Shartnoma tuzuvchining otasining ismi',
-        error1: "Muvaffaqiyatli qo'shildi",
-        error2: "Qo'shib bo'lmadi barcha maydonlarni to'g'riligini tekshiring",
-        pasportdate: "Pasport berilgan sana",
-        student: "Talaba",
-        contract_maker: "Shartnoma tuzuvchi"
-    }],
-    [Langs.RU, {
-        invalid_passport: "Неверный номер паспорта! Это должно быть 2 буквы, за которыми следуют 7 цифр",
-        invalid_pinfl: "PINFL должен состоять из 14 цифр",
-        ivalid_value: "Неверное значение",
-        title: "Добавить нового студента",
-        first_name: "Имя",
-        last_name: "Фамилия",
-        sure_name: "Отчество",
-        groups: "Группа",
-        price: "Сумма платежа",
-        refereed_by: "Рекомендатель",
-        phone_number: "Телефон",
-        gender: "Пол",
-        birthday: "Дата рождения",
-        passport: "Паспорт",
-        pinfl: "ПИНФЛ",
-        email: "Эл. адрес",
-        password: "Пароль",
-        status: "Статус",
-        submit: "Отправить",
-        choose1: "Выберите группу",
-        choose2: "Выберите пол",
-        choose3: "Выберите язык обучения",
-        choose4: "Выбрать курс",
-        man: "Мужчина",
-        woman: "Женщина",
-        amount: "Сумма",
-        discount: "Скидка",
-        total: "Итог",
-        course: "Название курса",
-        address: "Адрес",
-        passport_address: "Кем выдан паспорт",
-        education_language: "Язык обучения",
-        uzbek: "Узбекский",
-        russian: "Русский",
-        required: "Все поля обязательны для заполнения",
-        cfirst_name: 'Имя подрядчика',
-        clast_name: 'Фамилия подрядчика',
-        csure_name: 'Имя отца договаривающейся стороны',
-        error1: "Успешно добавлено",
-        error2: "Не удалось добавить. Пожалуйста, проверьте правильность всех полей",
-        pasportdate: "Дата выдачи паспорта",
-        student: "Студент",
-        contract_maker: "Контрактник"
-    }],
-    [Langs.EN, {
-        invalid_passport: "Invalid passport number! It should be 2 letters followed by 7 digits",
-        invalid_pinfl: "PINFL must be 14 digits long",
-        ivalid_value: "Invalid value",
-        title: "Add new student",
-        first_name: "First Name",
-        last_name: "Last Name",
-        sure_name: "Middle Name",
-        groups: "Groups",
-        price: "Payment",
-        refereed_by: "Referred by",
-        phone_number: "Phone Number",
-        gender: "Gender",
-        birthday: "Birthday",
-        passport: "Passport",
-        pinfl: "PINFL",
-        email: "Email",
-        password: "Password",
-        status: "Status",
-        submit: "Submit",
-        choose1: "Select group",
-        choose2: "Select gender",
-        choose3: "Select the language of instruction",
-        choose4: "Choose a course",
-        man: "Male",
-        woman: "Female",
-        amount: "Amount",
-        discount: "Discount",
-        total: "Total",
-        course: "Course name",
-        address: "Address",
-        passport_address: "Passport issued by",
-        education_language: "Education language",
-        uzbek: "Uzbek",
-        russian: "Russian",
-        required: "All fields are required",
-        cfirst_name: 'Name of the contractor',
-        clast_name: 'Surname of the contractor',
-        csure_name: "Father's name of the contracting party",
-        error1: "Successfully added",
-        error2: "Failed to add. Please check that all fields are correct",
-        pasportdate: "Passport issue date",
-        student: "Student",
-        contract_maker: "Contract maker"
-    }],
+  [
+    Langs.UZ,
+    {
+      invalid_passport:
+        "Pasport raqami noto'g'ri! U 2 ta harfdan keyin 7 ta raqamdan iborat bo'lishi kerak",
+      invalid_pinfl: "JSHSHIR 14 sondan iborat bo'lishi kerak",
+      ivalid_value: "Qiymat notog'ri",
+      title: "Yangi o'quvchi qo'shish",
+      first_name: "Ism",
+      last_name: "Familiya",
+      sure_name: "Otasining ismi",
+      groups: "Guruh",
+      price: "To'lov summmasi",
+      refereed_by: "Yuborgan shaxs",
+      phone_number: "Telefon raqami",
+      gender: "Jinsi",
+      birthday: "Tug'ilgan sana",
+      passport: "Pasport",
+      pinfl: "JSHSHIR",
+      email: "Email",
+      password: "Parol",
+      status: "Holati",
+      submit: "Yuborish",
+      choose1: "Guruhni tanlang",
+      choose2: "Jinsini tanlang",
+      choose3: "Ta'lim tilini tanlang",
+      choose4: "Kursni tanlang",
+      man: "Erkak",
+      woman: "Ayol",
+      amount: "Summa",
+      discount: "Chegirma",
+      total: "Umumiy hisob",
+      course: "Kurs nomi",
+      address: "Manzil",
+      passport_address: "Pasport kim tomonidan berilgan",
+      education_language: "Ta'lim tili",
+      uzbek: "O'zbek tili",
+      russian: "Rus tili",
+      required: "Ushbu maydon to'ldirilishi shart",
+      cfirst_name: "Shartnoma tuzuvchining ismi",
+      clast_name: "Shartnoma tuzuvchining familiyasi",
+      csure_name: "Shartnoma tuzuvchining otasining ismi",
+      error1: "Muvaffaqiyatli qo'shildi",
+      error2: "Qo'shib bo'lmadi barcha maydonlarni to'g'riligini tekshiring",
+      pasportdate: "Pasport berilgan sana",
+      student: "Talaba",
+      contract_maker: "Shartnoma tuzuvchi",
+    },
+  ],
+  [
+    Langs.RU,
+    {
+      invalid_passport:
+        "Неверный номер паспорта! Это должно быть 2 буквы, за которыми следуют 7 цифр",
+      invalid_pinfl: "PINFL должен состоять из 14 цифр",
+      ivalid_value: "Неверное значение",
+      title: "Добавить нового студента",
+      first_name: "Имя",
+      last_name: "Фамилия",
+      sure_name: "Отчество",
+      groups: "Группа",
+      price: "Сумма платежа",
+      refereed_by: "Рекомендатель",
+      phone_number: "Телефон",
+      gender: "Пол",
+      birthday: "Дата рождения",
+      passport: "Паспорт",
+      pinfl: "ПИНФЛ",
+      email: "Эл. адрес",
+      password: "Пароль",
+      status: "Статус",
+      submit: "Отправить",
+      choose1: "Выберите группу",
+      choose2: "Выберите пол",
+      choose3: "Выберите язык обучения",
+      choose4: "Выбрать курс",
+      man: "Мужчина",
+      woman: "Женщина",
+      amount: "Сумма",
+      discount: "Скидка",
+      total: "Итог",
+      course: "Название курса",
+      address: "Адрес",
+      passport_address: "Кем выдан паспорт",
+      education_language: "Язык обучения",
+      uzbek: "Узбекский",
+      russian: "Русский",
+      required: "Это поле обязательно для заполнения",
+      cfirst_name: "Имя подрядчика",
+      clast_name: "Фамилия подрядчика",
+      csure_name: "Имя отца договаривающейся стороны",
+      error1: "Успешно добавлено",
+      error2:
+        "Не удалось добавить. Пожалуйста, проверьте правильность всех полей",
+      pasportdate: "Дата выдачи паспорта",
+      student: "Студент",
+      contract_maker: "Контрактник",
+    },
+  ],
+  [
+    Langs.EN,
+    {
+      invalid_passport:
+        "Invalid passport number! It should be 2 letters followed by 7 digits",
+      invalid_pinfl: "PINFL must be 14 digits long",
+      ivalid_value: "Invalid value",
+      title: "Add new student",
+      first_name: "First Name",
+      last_name: "Last Name",
+      sure_name: "Middle Name",
+      groups: "Groups",
+      price: "Payment",
+      refereed_by: "Referred by",
+      phone_number: "Phone Number",
+      gender: "Gender",
+      birthday: "Birthday",
+      passport: "Passport",
+      pinfl: "PINFL",
+      email: "Email",
+      password: "Password",
+      status: "Status",
+      submit: "Submit",
+      choose1: "Select group",
+      choose2: "Select gender",
+      choose3: "Select the language of instruction",
+      choose4: "Choose a course",
+      man: "Male",
+      woman: "Female",
+      amount: "Amount",
+      discount: "Discount",
+      total: "Total",
+      course: "Course name",
+      address: "Address",
+      passport_address: "Passport issued by",
+      education_language: "Education language",
+      uzbek: "Uzbek",
+      russian: "Russian",
+      required: "This field is required",
+      cfirst_name: "Name of the contractor",
+      clast_name: "Surname of the contractor",
+      csure_name: "Father's name of the contracting party",
+      error1: "Successfully added",
+      error2: "Failed to add. Please check that all fields are correct",
+      pasportdate: "Passport issue date",
+      student: "Student",
+      contract_maker: "Contract maker",
+    },
+  ],
 ]);
 
 function StudentsForm() {
@@ -213,6 +253,7 @@ function StudentsForm() {
 
     async function onFinish(data: any) {
         try {
+            // Telefon raqamlarini formatlash
             if (data.phone_number) {
                 data.phone_number = formatPhoneNumber(data.phone_number);
             }
@@ -222,13 +263,19 @@ function StudentsForm() {
             }
 
             if (data.student?.birthday) {
-                const birthday: Moment = moment(data.student.birthday);
-                data.student.birthday = birthday.format('YYYY-MM-DD');
+                const birthdayParts = data.student.birthday.split('.');
+                if (birthdayParts.length === 3) {
+                    const [day, month, year] = birthdayParts;
+                    data.student.birthday = `${year}-${month}-${day}`;
+                }
             }
 
             if (data.passport_date) {
-                const passportDate: Moment = moment(data.passport_date);
-                data.passport_date = passportDate.format('YYYY-MM-DD');
+                const passportParts = data.passport_date.split('.');
+                if (passportParts.length === 3) {
+                    const [day, month, year] = passportParts;
+                    data.passport_date = `${year}-${month}-${day}`;
+                }
             }
 
             const myAccountResponse = await client.get('accounts/me/');
@@ -247,7 +294,6 @@ function StudentsForm() {
             });
 
             toast.success(contents.error1);
-            
             form.resetFields();
             
         } catch (error) {
@@ -257,199 +303,191 @@ function StudentsForm() {
     }
 
     return (
-        <div className="px-10 w-full mt-12 md:mt-0">
-            <div className="flex items-center mb-8">
-                <button
-                    type="button"
-                    onClick={() => window.history.back()}
-                    className="w-[50px] h-[50px] rounded-xl bg-white hover:bg-slate-50 dark:bg-gray-800 dark:hover:bg-gray-700 transition"
-                    aria-label="Go back"
-                >
-                    <i className="fa-solid fa-arrow-left dark:text-white"></i>
-                </button>
-                <h1 className="text-center text-3xl dark:text-white font-semibold font-sans mx-auto">
-                    {contents.title}
-                </h1>
-            </div>
-
-            <Form
-                className="w-full 2xl:h-[87%] h-[65%] overflow-y-auto"
-                layout="vertical"
-                size="large"
-                form={form}
-                onFinish={onFinish}
-            >
-                <h3 className="text-2xl font-medium mb-4 dark:text-white">
-                    {contents.contract_maker}
-                </h3>
-                <div className="md:grid grid-cols-4 gap-x-[30px] gap-y-[10px] mb-6">
-                    <Form.Item
-                        label={contents.last_name}
-                        name="last_name"
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <Input />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.first_name}
-                        name="first_name"
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <Input />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.sure_name}
-                        name="surname"
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <Input />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.phone_number}
-                        name="phone_number"
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <PhoneInput />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.passport}
-                        name="passport_seria"
-                        rules={[
-                            { required: false, message: contents.required },
-                            {
-                                pattern: /^[A-Z]{2}\d{7}$/,
-                                message: contents.invalid_passport,
-                            },
-                        ]}
-                    >
-                        <Input
-                            placeholder="AA1234567"
-                            maxLength={9}
-                            onChange={(e) => {
-                                const value = e.target.value.toUpperCase();
-                                form.setFieldValue("passport_seria", value);
-                            }}
-                        />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.pinfl}
-                        name="pinfl"
-                        rules={[
-                            { required: false, message: contents.required },
-                            { len: 14, message: contents.invalid_pinfl },
-                            { pattern: /^[0-9]+$/, message: contents.ivalid_value },
-                        ]}
-                    >
-                        <Input maxLength={14} />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.pasportdate}
-                        name="passport_date"
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <DatePicker
-                            placeholder="DD.MM.YYYY"
-                            format="DD.MM.YYYY"
-                            style={{ width: "100%" }}
-                        />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.passport_address}
-                        name="passport_address"
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <Input />
-                    </Form.Item>
-
-                    <Form.Item
-                        className="col-span-2"
-                        label={contents.address}
-                        name="address"
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <Input />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.price}
-                        name="price"
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <InputNumber min={0} style={{ width: "100%" }} />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.discount}
-                        name="discount"
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <InputNumber min={0} style={{ width: "100%" }} />
-                    </Form.Item>
-                </div>
-
-                <h3 className="text-2xl font-medium mb-4 dark:text-white">
-                    {contents.student}
-                </h3>
-                <div className="md:grid grid-cols-3 gap-x-[30px] gap-y-[10px] mb-4">
-                    <Form.Item
-                        label={contents.last_name}
-                        name={["student", "last_name"]}
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <Input />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.first_name}
-                        name={["student", "first_name"]}
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <Input />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.sure_name}
-                        name={["student", "sure_name"]}
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <Input />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.phone_number}
-                        name={["student", "phone_number"]}
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <PhoneInput />
-                    </Form.Item>
-
-                    <Form.Item
-                        label={contents.birthday}
-                        name={["student", "birthday"]}
-                        rules={[{ required: false, message: contents.required }]}
-                    >
-                        <DatePicker
-                            format="DD.MM.YYYY"
-                            placeholder="DD.MM.YYYY"
-                            style={{ width: "100%" }}
-                        />
-                    </Form.Item>
-                </div>
-
-                <Form.Item className="[&_button]:w-[200px]">
-                    <Button type="primary" htmlType="submit">
-                        {contents.submit}
-                    </Button>
-                </Form.Item>
-            </Form>
+      <div className="px-10 w-full mt-12 md:mt-0">
+        <div className="flex items-center mb-8">
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="w-[50px] h-[50px] rounded-xl bg-white hover:bg-slate-50 dark:bg-gray-800 dark:hover:bg-gray-700 transition"
+            aria-label="Go back"
+          >
+            <i className="fa-solid fa-arrow-left dark:text-white"></i>
+          </button>
+          <h1 className="text-center text-3xl dark:text-white font-semibold font-sans mx-auto">
+            {contents.title}
+          </h1>
         </div>
+
+        <Form
+          className="w-full 2xl:h-[87%] h-[65%] overflow-y-auto"
+          layout="vertical"
+          size="large"
+          form={form}
+          onFinish={onFinish}
+        >
+          <h3 className="text-2xl font-medium mb-4 dark:text-white">
+            {contents.contract_maker}
+          </h3>
+          <div className="md:grid grid-cols-4 gap-x-[30px] gap-y-[10px] mb-6">
+            <Form.Item
+              label={contents.last_name}
+              name="last_name"
+              rules={[{ required: false, message: contents.required }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.first_name}
+              name="first_name"
+              rules={[{ required: false, message: contents.required }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.sure_name}
+              name="surname"
+              rules={[{ required: false, message: contents.required }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.phone_number}
+              name="phone_number"
+              rules={[{ required: false, message: contents.required }]}
+            >
+              <PhoneInput />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.passport}
+              name="passport_seria"
+              rules={[
+                { required: false, message: contents.required },
+                {
+                  pattern: /^[A-Z]{2}\d{7}$/,
+                  message: contents.invalid_passport,
+                },
+              ]}
+            >
+              <Input
+                placeholder="AA1234567"
+                maxLength={9}
+                onChange={(e) => {
+                  const value = e.target.value.toUpperCase();
+                  form.setFieldValue("passport_seria", value);
+                }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.pinfl}
+              name="pinfl"
+              rules={[
+                { required: false, message: contents.required },
+                { len: 14, message: contents.invalid_pinfl },
+                { pattern: /^[0-9]+$/, message: contents.ivalid_value },
+              ]}
+            >
+              <Input maxLength={14} />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.pasportdate}
+              name="passport_date"
+              rules={[{ required: false, message: contents.required }]}
+            >
+              <DateInput />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.passport_address}
+              name="passport_address"
+              rules={[{ required: false, message: contents.required }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              className="col-span-2"
+              label={contents.address}
+              name="address"
+              rules={[{ required: false, message: contents.required }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.price}
+              name="price"
+              rules={[{ required: true, message: contents.required }]}
+            >
+              <InputNumber min={0} style={{ width: "100%" }} />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.discount}
+              name="discount"
+              rules={[{ required: false, message: contents.required }]}
+            >
+              <InputNumber min={0} style={{ width: "100%" }} />
+            </Form.Item>
+          </div>
+
+          <h3 className="text-2xl font-medium mb-4 dark:text-white">
+            {contents.student}
+          </h3>
+          <div className="md:grid grid-cols-3 gap-x-[30px] gap-y-[10px] mb-4">
+            <Form.Item
+              label={contents.last_name}
+              name={["student", "last_name"]}
+              rules={[{ required: true, message: contents.required }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.first_name}
+              name={["student", "first_name"]}
+              rules={[{ required: true, message: contents.required }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.sure_name}
+              name={["student", "sure_name"]}
+              rules={[{ required: true, message: contents.required }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.phone_number}
+              name={["student", "phone_number"]}
+              rules={[{ required: true, message: contents.required }]}
+            >
+              <PhoneInput />
+            </Form.Item>
+
+            <Form.Item
+              label={contents.birthday}
+              name={["student", "birthday"]}
+              rules={[{ required: false, message: contents.required }]}
+            >
+              <DateInput />
+            </Form.Item>
+          </div>
+
+          <Form.Item className="[&_button]:w-[200px]">
+            <Button type="primary" htmlType="submit">
+              {contents.submit}
+            </Button>
+          </Form.Item>
+        </Form>
+      </div>
     );
 }
 
