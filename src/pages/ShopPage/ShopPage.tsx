@@ -5,7 +5,7 @@ import client from "../../components/services";
 import { UserContext } from '../../components/context/Context';
 import { Link } from "react-router-dom";
 import Modal from "./Modal";
-import ConfirmDeleteModal from "./ConfirmDeleteModal"; // Import the confirmation modal
+import ConfirmDeleteModal from "./ConfirmDeleteModal"; 
 import "./shopStyle.css";
 import { Langs } from "../../enums";
 import { GlobalContext } from "../../App";
@@ -71,7 +71,7 @@ const ShopPage: React.FC = () => {
                 toast.error(contents.error1);
             }
         })();
-    }, [showModal,category]);
+    }, [showModal]);
 
     const onDelete = (id: number) => {
         setCategoryToDelete(id); 

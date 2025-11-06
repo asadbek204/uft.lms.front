@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useContext, useState } from "react";
 import { Langs } from "../../../enums";
 import { GlobalContext } from "../../../App";
 import client from "../../../components/services";
+import { toast } from "react-toastify";
 
 interface ModalProps {
   isVisible: boolean;
@@ -93,7 +94,7 @@ const contentsMap = new Map<Langs, TConfPassComponentContent>([
 const Modal: React.FC<ModalProps> = ({ isVisible, onClose, onUpdate }) => {
   const { lang } = useContext(GlobalContext);
   const contents = contentsMap.get(lang) as TConfPassComponentContent;
-
+  
   const bookTitle = useRef<HTMLInputElement>(null);
   const bookAuthor = useRef<HTMLInputElement>(null);
   const bookDescription = useRef<HTMLInputElement>(null);
@@ -102,21 +103,23 @@ const Modal: React.FC<ModalProps> = ({ isVisible, onClose, onUpdate }) => {
   const bookCategory = useRef<HTMLInputElement>(null);
   const bookYear = useRef<HTMLInputElement>(null);
   const bookFile = useRef<HTMLInputElement>(null);
-
+  
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isVisible) return;
-
-    bookTitle.current!.value = "";
-    bookAuthor.current!.value = "";
-    bookDescription.current!.value = "";
-    bookLanguage.current!.value = "";
-    bookCategory.current!.value = "";
-    bookYear.current!.value = "";
-    bookPhoto.current!.value = "";
-    bookFile.current!.value = "";
+    
+    // Modal ochilganda barcha inputlarni tozalash
+    if (bookTitle.current) bookTitle.current.value = "";
+    if (bookAuthor.current) bookAuthor.current.value = "";
+    if (bookDescription.current) bookDescription.current.value = "";
+    if (bookLanguage.current) bookLanguage.current.value = "";
+    if (bookCategory.current) bookCategory.current.value = "";
+    if (bookYear.current) bookYear.current.value = "";
+    if (bookPhoto.current) bookPhoto.current.value = "";
+    if (bookFile.current) bookFile.current.value = "";
+    
     setSelectedPhoto(null);
     setSelectedFile(null);
   }, [isVisible]);
@@ -132,7 +135,7 @@ const Modal: React.FC<ModalProps> = ({ isVisible, onClose, onUpdate }) => {
       !bookYear.current?.value ||
       !bookFile.current?.files?.[0]
     ) {
-      alert(contents.alertFillFields);
+      toast.error(contents.alertFillFields);
       return;
     }
 
@@ -148,15 +151,32 @@ const Modal: React.FC<ModalProps> = ({ isVisible, onClose, onUpdate }) => {
 
     try {
       const response = await client.post("books/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      alert(contents.alertSuccessAddingBook);
-      onUpdate(response.data);
+
+      console.log("Server javobi:", response.data);
+
+      // Yangi kitob obyektini yaratish
+      const newBook = {
+        id: response.data.id,
+        name: response.data.name,
+        author: response.data.author,
+        description: response.data.description,
+        image: response.data.image,
+        year: response.data.year,
+        language: response.data.language,
+        category: response.data.category,
+        downloadUrl: response.data.file?.file || response.data.file || "",
+        file: response.data.file,
+      };
+
+      toast.success(contents.alertSuccessAddingBook);
+      onUpdate(newBook);
       onClose();
-    } catch (error) {
-      alert(contents.alertErrorAddingBook);
+    } catch (error: any) {
+      console.error("Kitob qo'shishda xato:", error);
+      console.error("Error response:", error.response?.data);
+      toast.error(contents.alertErrorAddingBook);
     }
   };
 
@@ -180,96 +200,95 @@ const Modal: React.FC<ModalProps> = ({ isVisible, onClose, onUpdate }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black bg-opacity-70">
-  <div className="relative w-full max-w-3xl mt-28 md:mt-0 p-4 mx-auto bg-white rounded-lg shadow-lg">
-    <div className="flex justify-end ">
-      <button
-        onClick={onClose}
-        className="text-gray-600  text-3xl hover:text-gray-900"
-      >
-        &times;
-      </button>
-    </div>
-    <div className="px-6 pb-6">
-      <div className="card bg-gray-200">
-        <div className="card-header py-5">
-          <h1 className="text-2xl text-center font-semibold text-gray-800">
-            {contents.title}
-          </h1>
-          <div className="flex justify-center flex-col items-center form-group text-center p-5">
-            <input
-              ref={bookTitle}
-              className="w-full sm:w-4/5 py-2 mt-4 px-3 border-slate-400 rounded border"
-              placeholder={contents.placeholder1}
-            />
-            <input
-              ref={bookAuthor}
-              className="w-full sm:w-4/5 py-2 mt-4 px-3 border-slate-400 rounded border"
-              placeholder={contents.authorPlaceholder}
-            />
-            <input
-              ref={bookDescription}
-              className="w-full sm:w-4/5 py-2 mt-4 px-3 border-slate-400 rounded border"
-              placeholder={contents.placeholder2}
-            />
-            <input
-              ref={bookLanguage}
-              className="w-full sm:w-4/5 py-2 mt-4 px-3 border-slate-400 rounded border"
-              placeholder={contents.languagePlaceholder}
-            />
-            <input
-              ref={bookCategory}
-              className="w-full sm:w-4/5 py-2 mt-4 px-3 border-slate-400 rounded border"
-              placeholder={contents.categoryPlaceholder}
-            />
-            <input
-              ref={bookYear}
-              className="w-full sm:w-4/5 py-2 mt-4 px-3 border-slate-400 rounded border"
-              placeholder={contents.yearPlaceholder}
-            />
-
-            <div className="w-full sm:w-4/5 py-2 mt-4 px-3 bg-white border-slate-400 rounded border flex justify-between items-center">
-              <label className="py-1 px-2 bg-gray-200 rounded cursor-pointer text-gray-800 hover:bg-gray-300 border border-slate-400">
-                {contents.choosePhoto}
+      <div className="relative w-full max-w-3xl mt-28 md:mt-0 p-4 mx-auto bg-white rounded-lg shadow-lg">
+        <div className="flex justify-end">
+          <button
+            onClick={onClose}
+            className="text-gray-600 text-3xl hover:text-gray-900"
+          >
+            &times;
+          </button>
+        </div>
+        <div className="px-6 pb-6">
+          <div className="card bg-gray-200">
+            <div className="card-header py-5">
+              <h1 className="text-2xl text-center font-semibold text-gray-800">
+                {contents.title}
+              </h1>
+              <div className="flex justify-center flex-col items-center form-group text-center p-5">
                 <input
-                  ref={bookPhoto}
-                  type="file"
-                  className="hidden"
-                  onChange={handlePhotoChange}
+                  ref={bookTitle}
+                  className="w-full sm:w-4/5 py-2 mt-4 px-3 border-slate-400 rounded border"
+                  placeholder={contents.placeholder1}
                 />
-              </label>
-              <span className="ml-3 text-gray-600">
-                {selectedPhoto || contents.noPhotoChosen}
-              </span>
-            </div>
-
-            <div className="w-full sm:w-4/5 py-2 mt-4 px-3 bg-white border-slate-400 rounded border flex justify-between items-center">
-              <label className="py-1 px-2 bg-gray-200 rounded cursor-pointer text-gray-800 hover:bg-gray-300 border border-slate-400">
-                {contents.chooseFile}
                 <input
-                  ref={bookFile}
-                  type="file"
-                  className="hidden"
-                  onChange={handleFileChange}
+                  ref={bookAuthor}
+                  className="w-full sm:w-4/5 py-2 mt-4 px-3 border-slate-400 rounded border"
+                  placeholder={contents.authorPlaceholder}
                 />
-              </label>
-              <span className="ml-3 text-gray-600">
-                {selectedFile || contents.noFileChosen}
-              </span>
+                <input
+                  ref={bookDescription}
+                  className="w-full sm:w-4/5 py-2 mt-4 px-3 border-slate-400 rounded border"
+                  placeholder={contents.placeholder2}
+                />
+                <input
+                  ref={bookLanguage}
+                  className="w-full sm:w-4/5 py-2 mt-4 px-3 border-slate-400 rounded border"
+                  placeholder={contents.languagePlaceholder}
+                />
+                <input
+                  ref={bookCategory}
+                  className="w-full sm:w-4/5 py-2 mt-4 px-3 border-slate-400 rounded border"
+                  placeholder={contents.categoryPlaceholder}
+                />
+                <input
+                  ref={bookYear}
+                  type="number"
+                  className="w-full sm:w-4/5 py-2 mt-4 px-3 border-slate-400 rounded border"
+                  placeholder={contents.yearPlaceholder}
+                />
+                <div className="w-full sm:w-4/5 py-2 mt-4 px-3 bg-white border-slate-400 rounded border flex justify-between items-center">
+                  <label className="py-1 px-2 bg-gray-200 rounded cursor-pointer text-gray-800 hover:bg-gray-300 border border-slate-400">
+                    {contents.choosePhoto}
+                    <input
+                      ref={bookPhoto}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handlePhotoChange}
+                    />
+                  </label>
+                  <span className="ml-3 text-gray-600">
+                    {selectedPhoto || contents.noPhotoChosen}
+                  </span>
+                </div>
+                <div className="w-full sm:w-4/5 py-2 mt-4 px-3 bg-white border-slate-400 rounded border flex justify-between items-center">
+                  <label className="py-1 px-2 bg-gray-200 rounded cursor-pointer text-gray-800 hover:bg-gray-300 border border-slate-400">
+                    {contents.chooseFile}
+                    <input
+                      ref={bookFile}
+                      type="file"
+                      accept=".pdf,.doc,.docx,.epub"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                  </label>
+                  <span className="ml-3 text-gray-600">
+                    {selectedFile || contents.noFileChosen}
+                  </span>
+                </div>
+                <button
+                  onClick={addBook}
+                  className="w-full sm:w-4/5 py-2 mt-4 px-4 bg-blue-600 text-white rounded hover:bg-blue-500 transition-colors duration-300"
+                >
+                  {contents.button}
+                </button>
+              </div>
             </div>
-
-            <button
-              onClick={addBook}
-              className="w-full sm:w-4/5 py-2 mt-4 px-4 bg-blue-600 text-white rounded hover:bg-blue-500 transition-colors duration-300"
-            >
-              {contents.button}
-            </button>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
-
   );
 };
 

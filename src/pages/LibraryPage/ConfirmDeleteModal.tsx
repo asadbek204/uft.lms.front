@@ -3,16 +3,14 @@ import client from "../../components/services";
 import { toast } from "react-toastify";
 import { GlobalContext } from "../../App";
 import { Langs } from "../../enums";
-
 type TNewsComponentContent = {
     toast1: string;
     toast2: string;
     title: string;
-    description: string; 
+    description: string;
     button1: string;
     button2: string;
 };
-
 const contentsMap = new Map<Langs, TNewsComponentContent>([
     [Langs.UZ, {
         toast1: "Kitob muvaffaqiyatli oʻchirildi",
@@ -39,41 +37,35 @@ const contentsMap = new Map<Langs, TNewsComponentContent>([
         button2: "Confirm"
     }],
 ]);
-
 interface ConfirmDeleteModalProps {
-    isVisible: boolean; // Ensure this prop is defined
-    content: number | null; // The book ID to delete
-    onDelete: (content: number) => void; // Function to call on delete
-    onClose: () => void; // Function to close the modal
+    isVisible: boolean;
+    content: number | null;
+    onDelete: (content: number) => void;
+    onClose: () => void;
 }
-
 const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ isVisible, content, onDelete, onClose }) => {
     const { lang } = useContext(GlobalContext);
     const contents = contentsMap.get(lang) as TNewsComponentContent;
-
     const deleteBook = async (id: number) => {
         await client.delete(`books/${id}/`)
             .then(() => {
                 toast.success(contents.toast1);
-                onDelete(id); 
+                onDelete(id);
             })
             .catch(() => {
                 toast.error(contents.toast2);
             });
     };
-
     const handleConfirm = () => {
         if (content !== null) {
             deleteBook(content);
-            onClose(); // Close the modal after confirming
+            onClose();
         }
     };
-
     if (!isVisible) return null;
-
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-            <div className="bg-white border-2 border-slate-300 p-5 rounded-lg shadow-lg z-50 max-w-md w-full">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50" onClick={onClose}>
+            <div className="bg-white border-2 border-slate-300 p-5 rounded-lg shadow-lg z-50 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
                 <h1 className="text-xl font-bold mb-4">{contents.title}</h1>
                 <p className="mb-4 ">{contents.description}</p>
                 <div className="flex justify-between space-x-2">
@@ -88,5 +80,4 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ isVisible, cont
         </div>
     );
 };
-
 export default ConfirmDeleteModal;

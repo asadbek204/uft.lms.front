@@ -66,6 +66,20 @@ function LibraryPage() {
     setModalVisible(true);
   };
 
+  // Kitoblarni kategoriya bo'yicha saralash
+  const sortBooksByCategory = (booksList: TBooks[], category: string) => {
+    const filtered = category
+      ? booksList.filter((book) => book.category === category)
+      : booksList;
+
+    const sorted = [...filtered].sort((a, b) =>
+      a.category.localeCompare(b.category)
+    );
+
+    setBooks(sorted);
+  };
+
+  // Kitoblarni yuklash
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -81,45 +95,66 @@ function LibraryPage() {
             year: book.year,
             language: book.language,
             category: book.category,
-            downloadUrl: book.file.file,
+            downloadUrl: book.file?.file || book.file || "", // Xavfsiz olish
           }));
-
+          
           const uniqueCategories = Array.from(
             new Set(data.map((book) => book.category))
           );
           setCategories(uniqueCategories);
-          sortBooksByCategory(data, sortCategory);
+          setBooks(data); // Boshlang'ich holatda barcha kitoblarni ko'rsatish
         }
       } catch (err) {
         console.error("Failed to fetch books:", err);
       }
     };
-
     fetchBooks();
+  }, []); // Faqat bir marta ishga tushadi
+
+  // Kategoriya o'zgarganda saralash
+  useEffect(() => {
+    if (books.length > 0) {
+      sortBooksByCategory(books, sortCategory);
+    }
   }, [sortCategory]);
 
-  const sortBooksByCategory = (books: TBooks[], category: string) => {
-    const sortedBooks = category
-      ? books.filter((book) => book.category === category)
-      : books;
+  // Yangi kitob qo'shilganda
+  const handleUpdate = (newItem: any) => {
+    const mappedNew: TBooks = {
+      id: newItem.id,
+      name: newItem.name,
+      image: newItem.image,
+      author: newItem.author,
+      description: newItem.description,
+      count: 0,
+      year: newItem.year,
+      language: newItem.language,
+      category: newItem.category,
+      downloadUrl: newItem.downloadUrl || newItem.file?.file || newItem.file || "",
+    };
 
-    setBooks(sortedBooks.sort((a, b) => a.category.localeCompare(b.category)));
-  };
-
-  const handleUpdate = (newItem: TBooks) => {
     setBooks((prevBooks) => {
-      const updatedBooks = [newItem, ...prevBooks];
-      sortBooksByCategory(updatedBooks, sortCategory);
+      const updatedBooks = [mappedNew, ...prevBooks];
+      
+      // Kategoriyalarni yangilash
+      const uniqueCategories = Array.from(
+        new Set(updatedBooks.map((book) => book.category))
+      );
+      setCategories(uniqueCategories);
+      
       return updatedBooks;
     });
   };
 
-
+  // Kitobni o'chirish
+  const handleDelete = (id: number) => {
+    setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
+  };
 
   return (
     <div className="w-full mt-12 md:mt-0">
       <div className="header w-full flex justify-end">
-        <div className="m-5 flex w-full  justify-between items-center">
+        <div className="m-5 flex w-full justify-between items-center">
           <div></div>
           <h1 className="text-2xl lg:text-4xl font-bold dark:text-customText">
             {contents.title}
@@ -137,7 +172,6 @@ function LibraryPage() {
                 </option>
               ))}
             </select>
-
             {(role === "admin" || role === "teacher") && (
               <button
                 onClick={() => setShowModal(true)}
@@ -148,44 +182,43 @@ function LibraryPage() {
             )}
           </div>
         </div>
-        
       </div>
-
+      
       <div className="flex mr-5 justify-end mb-6 items-center md:hidden">
-      <select
-              value={sortCategory}
-              onChange={(e) => setSortCategory(e.target.value)}
-              className="px-3 py-2  border rounded dark:bg-gray-300"
-            >
-              <option value="">{contents.categories}</option>
-              {categories.map((category, index) => (
-                <option key={index} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
+        <select
+          value={sortCategory}
+          onChange={(e) => setSortCategory(e.target.value)}
+          className="px-3 py-2 border rounded dark:bg-gray-300"
+        >
+          <option value="">{contents.categories}</option>
+          {categories.map((category, index) => (
+            <option key={index} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
       </div>
-
-
+      
       <div className="2xl:h-[88%] h-[75%] overflow-y-auto">
         {books.map((content) => (
-          <div style={{boxShadow: "1px 5px 6px rgba(0, 0, 0, 0.15"}}
+          <div
+            style={{ boxShadow: "1px 5px 6px rgba(0, 0, 0, 0.15)" }}
             key={content.id}
             className="w-5/6 flex flex-col mx-auto rounded-xl mb-5 bg-white dark:bg-gray-700"
           >
-            <div className="flex flex-col md:flex-row ">
+            <div className="flex flex-col md:flex-row">
               <div
-                className="image_box w- sm:w-[510px] 2xl:w-[630px] rounded-t-lg md:rounded-s-xl overflow-hidden"
+                className="image_box w-full sm:w-[510px] 2xl:w-[630px] rounded-t-lg md:rounded-s-xl overflow-hidden"
                 style={{
-                  background: `linear-gradient(rgba(0,0,0,5), rgba(0,0,0,0.5)), url(${content.image})`,
+                  background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${content.image})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
-                    height: '230px'
-              
+                  height: "230px",
                 }}
               >
-                <img style={{borderRadius: "inherit"}}
-                  className="rounded-s-xl  w-full h-full"
+                <img
+                  style={{ borderRadius: "inherit" }}
+                  className="rounded-s-xl w-full h-full"
                   src={content.image}
                   alt={content.name}
                 />
@@ -200,20 +233,20 @@ function LibraryPage() {
                   </span>
                   <p className="dark:text-white font-serif">
                     {content.description.slice(0, 150)}
-                    {content.description.length > 200 ? "..." : ""}
+                    {content.description.length > 150 ? "..." : ""}
                   </p>
                   <div>
                     <a
                       href={content.downloadUrl}
                       target="_blank"
-                      download={true}
+                      rel="noopener noreferrer"
+                      download
                     >
-                      <button className="py-2 mb-3 mt-3 px-4 bg-blue-500 text-white rounded-2xl">
+                      <button className="py-2 mb-3 mt-3 px-4 bg-blue-500 text-white rounded-2xl hover:bg-blue-600">
                         {contents.button}
                       </button>
                     </a>
                   </div>
-
                   <div className="flex gap-6 flex-wrap w-full">
                     <div className="flex items-center gap-1 dark:text-white">
                       <i className="fa fa-calendar"></i>
@@ -229,26 +262,14 @@ function LibraryPage() {
                     </div>
                   </div>
                 </div>
-
                 <div className="flex">
                   {(role === "admin" || role === "teacher") && (
-                    <>
-                      <button
-                        onClick={() => handleOpenModal(content.id)}
-                        className="m-4 bg-red-600 w-[30px] h-[30px] dark:text-gray-200 text-white rounded-md"
-                      >
-                        <i className="fa-solid fa-trash-can" />
-                      </button>
-
-                      <ConfirmDeleteModal
-                        isVisible={isModalVisible}
-                        content={bookToDelete}
-                        onDelete={(id) =>
-                          console.log(`Deleted book with id: ${id}`)
-                        }
-                        onClose={() => setModalVisible(false)}
-                      />
-                    </>
+                    <button
+                      onClick={() => handleOpenModal(content.id)}
+                      className="m-4 bg-red-600 w-[30px] h-[30px] dark:text-gray-200 text-white rounded-md hover:bg-red-700"
+                    >
+                      <i className="fa-solid fa-trash-can" />
+                    </button>
                   )}
                 </div>
               </div>
@@ -256,11 +277,18 @@ function LibraryPage() {
           </div>
         ))}
       </div>
-
+      
       <Modal
         isVisible={showModal}
         onClose={() => setShowModal(false)}
         onUpdate={handleUpdate}
+      />
+      
+      <ConfirmDeleteModal
+        isVisible={isModalVisible}
+        content={bookToDelete}
+        onDelete={handleDelete}
+        onClose={() => setModalVisible(false)}
       />
     </div>
   );

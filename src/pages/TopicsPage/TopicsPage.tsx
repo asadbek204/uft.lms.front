@@ -70,7 +70,6 @@ const contentsMap = new Map<Langs, TTopicsComponentContent>([
   ],
 ]);
 
-
 type TSyllabus = {
   id: number;
   file: string | null;
@@ -213,35 +212,39 @@ function TCHTopicsPage() {
                         <th className="py-2 px-3 border-b">Yuklab olish</th>
                       </tr>
                     </thead>
-                   <tbody>
-  {course.syllabus && course.syllabus.length > 0 ? (
-    course.syllabus.map((item) => (
-      <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-        <td className="py-2 px-3 border-b">{item.path || "Noma'lum fayl"}</td>
-        <td className="py-2 px-3 border-b">
-          {item.description || "-"}
-        </td>
-        <td className="py-2 px-3 border-b">
-          <a
-            href={item.file || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 hover:underline"
-          >
-            Yuklab olish
-          </a>
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan={3} className="text-center py-3">
-        Fayl topilmadi
-      </td>
-    </tr>
-  )}
-</tbody>
-
+                    <tbody>
+                      {course.syllabus && course.syllabus.length > 0 ? (
+                        course.syllabus.map((item) => (
+                          <tr
+                            key={item.id}
+                            className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                          >
+                            <td className="py-2 px-3 border-b">
+                              {item.path || "Noma'lum fayl"}
+                            </td>
+                            <td className="py-2 px-3 border-b">
+                              {item.description || "-"}
+                            </td>
+                            <td className="py-2 px-3 border-b">
+                              <a
+                                href={item.file || "#"}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline"
+                              >
+                                Yuklab olish
+                              </a>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={3} className="text-center py-3">
+                            Fayl topilmadi
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
                   </table>
                 </div>
               )}
