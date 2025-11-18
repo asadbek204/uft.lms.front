@@ -114,7 +114,7 @@ const STTopicsItem: React.FC = () => {
                 <tr>
                     <th className="border  border-slate-200 p-2">{contents.topics}</th>
                     <th className="border  border-slate-200 p-2">{contents.date}</th>
-                    <th className="border  border-slate-200 p-2">{contents.homework}</th>
+                    {/* <th className="border  border-slate-200 p-2">{contents.homework}</th> */}
                 </tr>
                 </thead>
                 <tbody className="border">
@@ -128,9 +128,9 @@ const STTopicsItem: React.FC = () => {
                         <td className="border text-center border-slate-200 p-2">
                             {formatDate(course.date)}
                         </td>
-                        <td className="border text-center border-slate-200 p-2">
+                        {/* <td className="border text-center border-slate-200 p-2">
                             {contents.download}:{course.download}
-                        </td>
+                        </td> */}
                     </tr>
                 ))}
                 </tbody>

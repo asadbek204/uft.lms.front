@@ -5,6 +5,7 @@ import { Langs } from '../../../../enums';
 import { GlobalContext } from '../../../../App';
 import Loading from '../../../../components/LoadingComponent/Loading';
 import Modal from "./Modal.tsx";
+import dayjs from 'dayjs';
 
 // Uyga vazifa uchun tip
 type THomework = {
@@ -123,6 +124,8 @@ const TopicDetailPage: React.FC = () => {
         return <p>{contents.fetchError}</p>;
     }
 
+    
+
     return (
         <div className="w-full mt-12 md:mt-0">
             <div className="mx-5 my-5 mb-5 justify-between items-center text-center flex gap-2">
@@ -144,37 +147,59 @@ const TopicDetailPage: React.FC = () => {
                </div>
             </div>
 
-            <div className="2xl:h-[88%] h-[75%] mx-10 overflow-y-auto">
+           <div className=" 2xl:h-[88%] h-[75%]  px-4 md:px-10 py-4 overflow-hidden">
+  <div className="h-full overflow-y-auto space-y-6 pb-10">
 
-                {courseDetail.homework?.description}
-                {courseDetail.homework ?
-                    (
-                        <>
-                            <div className="w-7/12 md:h-[485px] mx-auto">
-                                <video className="rounded-xl" controls width={'100%'} preload='auto' src={courseDetail.video.file}></video>
-                            </div>
-                            <div className="text-center">
-                                <a href={courseDetail.homework.file} target="_blank" download rel="noopener noreferrer">
-                                    <button className="bg-blue-400 mt-4 py-4 px-3 rounded">
-                                        {contents.downloadHomework}
-                                    </button>
-                                </a>
-                            </div>
-                        </>
-                    ) : <p className="text-2xl dark:text-customText">{contents.noHomework}</p>}
+    {/* Homework description */}
+    {courseDetail.homework?.description && (
+      <p className="text-base md:text-lg dark:text-customText leading-relaxed">
+        {courseDetail.homework.description}
+      </p>
+    )}
 
-                <div className="mt-10 mb-3">
-                <h1 className="text-2xl dark:text-customText">{contents.additionalInfo}</h1>
-                    {courseDetail.source.map((item) => (
-                        <div key={item.id}>
-                            <h1 className='dark:text-customText'>{item.description}</h1>
-                            <a className="text-blue-500" href={item.file} target="_blank">{item.file}</a>
-                        </div>
-                    ))}
-                </div>
-                <Modal isVisible={isModalVisible} onClose={closeModal}/>
+    {/* Video section */}
+    {courseDetail.homework ? (
+      <div className="flex justify-center">
+        <div className="w-full md:w-9/12 lg:w-7/12">
+          <video
+            className="rounded-xl w-full max-h-[420px] md:max-h-[500px] object-contain"
+            controls
+            preload="auto"
+            src={courseDetail.video.file}
+          ></video>
+        </div>
+      </div>
+    ) : (
+      <p className="text-2xl dark:text-customText">{contents.noHomework}</p>
+    )}
 
-            </div>
+    {/* Additional information */}
+    <div className="mt-4">
+      <h1 className="text-2xl font-semibold dark:text-customText mb-3">
+        {contents.additionalInfo}
+      </h1>
+
+      <div className="space-y-3">
+        {courseDetail.source?.map((item) => (
+          <div key={item.id} className="border-b pb-2">
+            <p className="dark:text-customText">{item.description}</p>
+            <a
+              href={item.file}
+              target="_blank"
+              className="text-blue-500 break-all hover:underline"
+            >
+              {item.file}
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <Modal isVisible={isModalVisible} onClose={closeModal} />
+
+  </div>
+</div>
+
         </div>
     );
 }

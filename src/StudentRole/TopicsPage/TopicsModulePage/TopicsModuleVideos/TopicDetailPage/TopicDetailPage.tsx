@@ -137,40 +137,53 @@ const TopicDetailPage: React.FC = () => {
                 <div className="flex gap-4 2xl:text-4xl text-3xl font-bold dark:text-customText">
                     <h1 className="text-4xl">{contents.topics}: <b>{courseDetail.unit}</b></h1>
                 </div>
-                <button onClick={handleAttendanceRequest} className='bg-blue-500 text-white py-2 px-4 rounded mr-2 hover:bg-blue-600 transition duration-200'>
+                {/* <button onClick={handleAttendanceRequest} className='bg-blue-500 text-white py-2 px-4 rounded mr-2 hover:bg-blue-600 transition duration-200'>
                       {contents.request}
-                </button>
+                </button> */}
+                <span></span>
             </div>
 
-            <div className="2xl:h-[88%] h-[87%] h-[460px] mx-10 overflow-y-auto">
-                {courseDetail.video?.file ? (
-                    <div className="w-7/12 h-[485px] mx-auto">
-                        <VideoComponent videoData={courseDetail.video.file} videoClass="rounded-xl"/>
-                    </div>
-                ) : (
-                    <p className="text-2xl text-center">{contents.nohomework}</p>
-                )}
+          <div className="2xl:h-[88%] h-[75%] px-4 md:px-10 py-4 overflow-hidden">
+  <div className="h-full overflow-y-auto space-y-8 pb-10">
 
-                {courseDetail.homework && (
-                    <div className="text-center">
-                        <a href={courseDetail.homework.file} target="_blank" download rel="noopener noreferrer">
-                            <button className="bg-blue-400 mt-4 py-4 px-3 rounded">
-                                {contents.download}
-                            </button>
-                        </a>
-                    </div>
-                )}
+    {/* Video Section */}
+    {courseDetail.video?.file ? (
+      <div className="flex justify-center">
+        <div className="w-full md:w-9/12 lg:w-7/12">
+          <VideoComponent
+            videoData={courseDetail.video.file}
+            videoClass="rounded-xl w-full max-h-[420px] md:max-h-[500px] object-contain"
+          />
+        </div>
+      </div>
+    ) : (
+      <p className="text-2xl text-center">{contents.nohomework}</p>
+    )}
 
-                <div className="mt-10 mb-3">
-                    <h1 className="text-2xl">{contents.text}</h1>
-                    {courseDetail.source.map((item) => (
-                        <div key={item.id}>
-                            <h1>{item.description}</h1>
-                            <a className="text-blue-500" href={item.file} target="_blank" rel="noopener noreferrer">{item.file}</a>
-                        </div>
-                    ))}
-                </div>
-            </div>
+    {/* Additional Info */}
+    <div className="mt-4">
+      <h1 className="text-2xl mb-4">{contents.text}</h1>
+
+      <div className="space-y-3">
+        {courseDetail.source.map((item) => (
+          <div key={item.id} className="border-b pb-2">
+            <p>{item.description}</p>
+            <a
+              className="text-blue-500 break-all hover:underline"
+              href={item.file}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {item.file}
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+
+  </div>
+</div>
+
         </div>
     );
 }

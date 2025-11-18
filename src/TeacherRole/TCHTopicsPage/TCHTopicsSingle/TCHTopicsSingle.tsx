@@ -3,10 +3,12 @@ import { GlobalContext } from "../../../App.tsx";
 import { Langs } from "../../../enums.ts";
 import client from "../../../components/services";
 import { useParams, Link } from "react-router-dom";
+import dayjs from "dayjs";
 
 type TTopicsComponentContent = {
   title: string;
   text: string;
+  attandance: string;
   tableHeaders: {
     date: string;
     unit: string;
@@ -20,6 +22,7 @@ const contentsMap = new Map<Langs, TTopicsComponentContent>([
     Langs.UZ,
     {
       title: "Darslar",
+      attandance: "Yo'qlama",
       text: "Siz tanlagan dars dasturini to'liq yuklab olishingiz mumkin",
       tableHeaders: {
         date: "Sanasi",
@@ -33,6 +36,7 @@ const contentsMap = new Map<Langs, TTopicsComponentContent>([
     Langs.RU,
     {
       title: "Уроки",
+      attandance: "Посещаемость",
       text: "Вы можете скачать полную программу по вашему выбору",
       tableHeaders: {
         date: "Дата",
@@ -46,6 +50,7 @@ const contentsMap = new Map<Langs, TTopicsComponentContent>([
     Langs.EN,
     {
       title: "Lessons",
+      attandance: "Attendance",
       text: "You can download the complete syllabus of your choice",
       tableHeaders: {
         date: "Date",
@@ -82,6 +87,10 @@ const STTopicsItem: React.FC = () => {
     })();
   }, [id, moduleId, userId, contents.errorMessage]);
 
+   const formatDate = (date: string) => {
+     return dayjs(date).format("DD.MM.YYYY");
+   };
+
   return (
     <div className="w-full mt-12 md:mt-0">
       <div className="mx-5 my-5 mb-0 justify-between items-center text-center flex gap-2">
@@ -95,8 +104,8 @@ const STTopicsItem: React.FC = () => {
           {contents.title}
         </h1>
         <Link to={`/topics-attandance/${id}`}>
-          <button className="w-20 h-12 bg-blue-400 text-slate-200 hover:text-black  hover:bg-gray-300  rounded">
-            Yo'qlama
+          <button className="!p-2 bg-blue-400 text-slate-200 hover:text-black  hover:bg-gray-300  rounded">
+            {contents.attandance}
           </button>
         </Link>
         {/* <div></div> */}
@@ -135,7 +144,7 @@ const STTopicsItem: React.FC = () => {
                       </Link>
                     </td>
                     <td className="border text-center border-slate-200 p-2">
-                      {course.date}
+                      {formatDate(course.date)}
                     </td>
                   </tr>
                 ))
