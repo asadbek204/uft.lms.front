@@ -5,7 +5,7 @@ import { Langs } from '../../../../../enums';
 import { GlobalContext } from '../../../../../App';
 import Loading from '../../../../../components/LoadingComponent/Loading';
 import VideoComponent from "../../../../../components/VideoComponent/VideoComponent.tsx";
-import { toast } from "react-toastify";
+// import { toast } from "react-toastify";
 
 
 type TTopicsComponentContent = {
@@ -123,9 +123,9 @@ const TopicDetailPage: React.FC = () => {
     }
 
 
-    const handleAttendanceRequest = () => {
-        toast.success(contents.requestToTeacher);
-      };
+    // const handleAttendanceRequest = () => {
+    //     toast.success(contents.requestToTeacher);
+    //   };
 
     return (
         <div className="w-full">

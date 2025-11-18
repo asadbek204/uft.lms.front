@@ -5,9 +5,7 @@ import { Langs } from '../../../../enums';
 import { GlobalContext } from '../../../../App';
 import Loading from '../../../../components/LoadingComponent/Loading';
 import Modal from "./Modal.tsx";
-import dayjs from 'dayjs';
 
-// Uyga vazifa uchun tip
 type THomework = {
     id: number;
     file: string;
