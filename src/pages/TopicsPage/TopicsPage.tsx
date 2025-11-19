@@ -159,10 +159,10 @@ const TCHTopicsPage: React.FC = () => {
         <h1 className="2xl:text-4xl text-3xl font-bold dark:text-customText">
           {contents.title}
         </h1>
-        <h3 className="text-gray-500 pr-5 text-center pb-8">{contents.text}</h3>
+        <h3 className="text-gray-500 pr-5 text-center ">{contents.text}</h3>
       </div>
 
-      <div className="2xl:h-[88%] h-[87%] overflow-y-auto">
+      <div className="w-full 2xl:h-[88%] h-[87%] overflow-y-auto">
         {courses.map((content, index) => (
           <div
             key={index}

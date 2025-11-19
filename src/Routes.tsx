@@ -74,6 +74,7 @@ import StudentsFormWithId from "./StudentsFormWithId.tsx";
 import StaffList from "./pages/StuffList/StuffList.tsx";
 import ManagerStudentsForm from "./ManagerRole/ManagerStudentsForm.tsx";
 import MJContractNewModule from "./ManagerRole/MJContracts/MJContractNewModule.tsx";
+import AttachContractModal from "./pages/StudentDetailPage/AttachContractModal.tsx";
 
 type TNewsComponentContent = {
     title: string;
@@ -135,7 +136,6 @@ const admin: ReactNode = (
         <Route path="/groups" element={<GroupsPage/>}/>
         <Route path='/groups/:id' element={<GroupSingle/>}/>
         <Route path='/groups/:id/students-form' element={<StudentsFormWithId/>}/>
-
         <Route path='/groups/:id/:id' element={<StudentDetailPageAll/>}/>
         <Route path="/debts" element={<DebtorsPage/>}/>
         <Route path="/videos" element={<VideosPageList/>}/>
@@ -157,6 +157,7 @@ const admin: ReactNode = (
         <Route path='/shop' element={<ShopPage/>}/>
         <Route path='/shop/:id' element={<ShopItemsPage/>}/>
         <Route path='/debts/:id' element={<StudentDetailPageAll/>}/>
+        <Route path="/student/:id/attach-contract" element={<AttachContractModal/>}/>
         <Route path='*' element={<Page404/>}/>
 
     </Routes>);
@@ -283,6 +284,8 @@ const manager: ReactNode = (
         <Route path='/new/agreement/:id' element={<MJContractNewModule/>}/>
         <Route path='/contracts/:id' element={<StudentDetailPageAll/>}/>
         <Route path='/contracts/form-students' element={<ManagerStudentsForm/>}/>
+        <Route path="/student/:id/attach-contract" element={<AttachContractModal/>}/>
+
     </Routes>
 )
 

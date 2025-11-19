@@ -248,7 +248,7 @@ function StudentsForm() {
         try {
             await client.post('students/agreement/create/', data, {
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Taype': 'application/json',
                 },
             });
 
@@ -358,7 +358,7 @@ function StudentsForm() {
                         <InputMask mask="(99) 999-99-99">
                             {/* @ts-expect-error */}
 
-                            {(inputProps) => <Input {...inputProps} addonBefore="+998" />}
+                            {(inpuztProps) => <Input {...inputProps} addonBefore="+998" />}
                         </InputMask>
                     </Form.Item>
                     <Form.Item label={contents.birthday} name={['student', 'birthday']} rules={[{ required: false, message: contents.required}]}>

@@ -8,7 +8,7 @@ import moment, {Moment} from 'moment';
 import {GlobalContext} from "../App.tsx";
 import client from "../components/services";
 import {Langs} from "../enums.ts";
-import {useParams} from "react-router-dom"; // Import Moment
+import {useParams} from "react-router-dom"; 
 
 
 type TGroup = {
@@ -222,11 +222,7 @@ function StudentsForm() {
         fetchData();
     }, [role]);
 
-    // function validatePhoneNumber(_: unknown, value: string) {
-    //     const unmaskedValue = value?.replace(/\D/g, '');
-    //     if (unmaskedValue && unmaskedValue.length === 9) return Promise.resolve();
-    //     return Promise.reject(new Error(contents.ivalid_value));
-    // }
+  
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async function onFinish(data: any) {
@@ -341,7 +337,7 @@ function StudentsForm() {
                         <Input/>
                     </Form.Item>
                     <Form.Item label={contents.groups} name={['student', 'groups']}
-                               rules={[{required: false, message: contents.required}]}>
+                               rules={[{required: true, message: contents.required}]}>
                         <Select>
                             {groups?.map(item => (
                                 <Select.Option value={item.id} key={item.id}>{item.name}</Select.Option>
@@ -362,19 +358,19 @@ function StudentsForm() {
                 <h3 className="text-2xl font-medium mb-4">{contents.student}</h3>
                 <div className="md:grid grid-cols-3 gap-x-[30px] gap-y-[10px] mb-4">
                     <Form.Item label={contents.first_name} name={['student', 'first_name']}
-                               rules={[{required: false, message: contents.required}]}>
+                               rules={[{required: true, message: contents.required}]}>
                         <Input/>
                     </Form.Item>
                     <Form.Item label={contents.last_name} name={['student', 'last_name']}
-                               rules={[{required: false, message: contents.required}]}>
+                               rules={[{required: true, message: contents.required}]}>
                         <Input/>
                     </Form.Item>
                     <Form.Item label={contents.sure_name} name={['student', 'sure_name']}
-                               rules={[{required: false, message: contents.required}]}>
+                               rules={[{required: true, message: contents.required}]}>
                         <Input/>
                     </Form.Item>
                     <Form.Item label={contents.phone_number} name={['student', 'phone_number']} rules={[
-                        {required: false, message: contents.required},
+                        {required: true, message: contents.required},
                         // { validator: validatePhoneNumber }
                     ]}>
                         <InputMask mask="(99) 999-99-99">
@@ -399,190 +395,3 @@ function StudentsForm() {
 
 export default StudentsForm;
 
-
-// import { useState, useEffect, useContext } from 'react';
-// import { Form, Input, InputNumber, DatePicker, Select, Button } from 'antd';
-// import InputMask from 'react-input-mask';
-// import { toast } from "react-toastify";
-// import moment, { Moment } from 'moment';
-// import client from "./components/services";
-// import { GlobalContext } from './App';
-
-// type TGroup = {
-//     id: number,
-//     name: string,
-//     status: boolean,
-//     amount: string
-// };
-
-// function StudentsForm() {
-//     const [groups, setGroups] = useState<TGroup[]>([]);
-//     const [existingPhoneNumbers, setExistingPhoneNumbers] = useState<string[]>([]); // State for existing phone numbers
-//     const { role } = useContext(GlobalContext);
-//     const [form] = Form.useForm();
-
-//     useEffect(() => {
-//         async function fetchData() {
-//             try {
-//                 const response = await client.get(`education/group/list/?needed_role=${role}`);
-//                 if (response.data) setGroups(response.data);
-//                 // Here you should fetch existing phone numbers if necessary
-//                 // Example: setExistingPhoneNumbers([...]); 
-//             } catch (error) {
-//                 console.error('Error fetching data: ', error);
-//             }
-//         }
-
-//         fetchData();
-//     }, [role]);
-
-//     function validatePhoneNumber(_: unknown, value: string) {
-//         const unmaskedValue = value?.replace(/\D/g, '');
-//         if (existingPhoneNumbers.includes(unmaskedValue)) {
-//             return Promise.reject(new Error('This phone number is already entered.'));
-//         }
-//         if (unmaskedValue && unmaskedValue.length === 9) return Promise.resolve();
-//         return Promise.reject(new Error('Invalid Value'));
-//     }
-
-//     async function onFinish(data: any) {
-//         // Adjust data to meet Backend Criteria
-//         data.phone_number = `+998${data.phone_number.replace(/[^0-9]/g, '')}`;
-//         data.student.phone_number = `+998${data.student.phone_number.replace(/[^0-9]/g, '')}`;
-
-//         const birthday: Moment = moment(data.student.birthday);
-//         data.student.birthday = birthday.format('YYYY-MM-DD');
-
-//         if (data.passport_date) {
-//             const passportDate: Moment = moment(data.passport_date);
-//             data.passport_date = passportDate.format('YYYY-MM-DD');
-//         }
-
-//         const myAccountResponse = await client.get('accounts/me/');
-//         data.manager = myAccountResponse.data.roles[role];
-
-//         data.student.password = '1234';
-
-//         try {
-//             await client.post('students/agreement/create/', data, {
-//                 headers: {
-//                     'Content-Type': 'application/json',
-//                 },
-//             });
-
-//             // Add the phone numbers to existingPhoneNumbers after successful submission
-//             setExistingPhoneNumbers(prev => [...prev, data.student.phone_number.replace('+998', '')]);
-//             toast.success('New student added successfully');
-//         } catch (error) {
-//             toast.error('Adding new student failed');
-//             console.error(error);
-//         }
-//     }
-
-//     return (
-//         <div className="px-10 w-full">
-//             <div className="flex items-center mb-8">
-//                 <button
-//                     type="button"
-//                     onClick={() => window.history.back()}
-//                     className="w-[50px] h-[50px] rounded-xl bg-white hover:bg-slate-50 dark:bg-gray-800 dark:hover:bg-gray-700 transition"
-//                 >
-//                     <i className="fa-solid fa-arrow-left dark:text-white"></i>
-//                 </button>
-//                 <h1 className="text-center text-3xl dark:text-white font-semibold font-sans mx-auto">Add a New Student</h1>
-//             </div>
-//             <Form layout="vertical" size="large" form={form} onFinish={onFinish}>
-//                 {/* Contract Maker Information */}
-//                 <h3 className="text-2xl font-medium mb-4">Contract Maker Information</h3>
-//                 <div className="grid grid-cols-4 gap-x-[30px] gap-y-[10px] mb-6">
-//                     <Form.Item label="First Name" name="first_name" rules={[{ required: true, message: 'Required' }]}>
-//                         <Input />
-//                     </Form.Item>
-//                     <Form.Item label="Middle Name" name="surname" rules={[{ required: true, message: 'Required' }]}>
-//                         <Input />
-//                     </Form.Item>
-//                     <Form.Item label="Last Name" name="last_name" rules={[{ required: true, message: 'Required' }]}>
-//                         <Input />
-//                     </Form.Item>
-//                     <Form.Item label="Phone Number" name="phone_number" rules={[
-//                         { required: true, message: 'Required' },
-//                         { validator: validatePhoneNumber }
-//                     ]}>
-//                         <InputMask mask="(99) 999-99-99">
-//                             {/* @ts-expect-error */}
-//                             {(inputProps) => <Input {...inputProps} addonBefore="+998" minLength={14} />}
-//                         </InputMask>
-//                     </Form.Item>
-//                     <Form.Item
-//                         label="Uzbekistan Passport"
-//                         name="passport_seria"
-//                         rules={[
-//                             { required: true, message: 'Please input your passport number!' },
-//                             { pattern: /^[A-Z]{2}\d{7}$/, message: 'Invalid passport number! It should be 2 letters followed by 7 digits.' },
-//                         ]}
-//                     >
-//                         <Input placeholder="AA1234567" maxLength={9} />
-//                     </Form.Item>
-//                     <Form.Item label="PINFL" name="pinfl" rules={[
-//                         { required: true, message: 'Required' },
-//                         { len: 14, message: 'Required' },
-//                         { pattern: /^[0-9]*$/, message: 'Invalid Value' }
-//                     ]}>
-//                         <Input maxLength={14} />
-//                     </Form.Item>
-//                     <Form.Item label="Passport Issued Date" name="passport_date" rules={[{ required: true, message: 'Required' }]}>
-//                         <DatePicker style={{ width: '100%' }} />
-//                     </Form.Item>
-//                     <Form.Item label="Passport Issued By" name="passport_address" rules={[{ required: true, message: 'Required' }]}>
-//                         <Input />
-//                     </Form.Item>
-//                     <Form.Item className="col-span-2" label="Address" name="address" rules={[{ required: true, message: 'Required' }]}>
-//                         <Input />
-//                     </Form.Item>
-//                     <Form.Item label="Group" name={['student', 'groups']} rules={[{ required: true, message: 'Required' }]}>
-//                         <Select>
-//                             {groups?.map(item => (
-//                                 <Select.Option value={item.id} key={item.id}>{item.name}</Select.Option>
-//                             ))}
-//                         </Select>
-//                     </Form.Item>
-//                     <Form.Item label="Discount" name="discount" rules={[{ required: true, message: 'Required' }]}>
-//                         <InputNumber min={0} style={{ width: '100%' }} />
-//                     </Form.Item>
-//                 </div>
-
-//                 {/* Student Information */}
-//                 <h3 className="text-2xl font-medium mb-4">Student Information</h3>
-//                 <div className="grid grid-cols-3 gap-x-[30px] gap-y-[10px] mb-4">
-//                     <Form.Item label="First Name" name={['student', 'first_name']} rules={[{ required: true, message: 'Required' }]}>
-//                         <Input />
-//                     </Form.Item>
-//                     <Form.Item label="Middle Name" name={['student', 'sure_name']} rules={[{ required: true, message: 'Required' }]}>
-//                         <Input />
-//                     </Form.Item>
-//                     <Form.Item label="Last Name" name={['student', 'last_name']} rules={[{ required: true, message: 'Required' }]}>
-//                         <Input />
-//                     </Form.Item>
-//                     <Form.Item label="Phone Number" name={['student', 'phone_number']} rules={[
-//                         { required: true, message: 'Required' },
-//                         { validator: validatePhoneNumber }
-//                     ]}>
-//                         <InputMask mask="(99) 999-99-99">
-//                             {/* @ts-expect-error */}
-//                             {(inputProps) => <Input {...inputProps} addonBefore="+998" />}
-//                         </InputMask>
-//                     </Form.Item>
-//                     <Form.Item label="Birthday" name={['student', 'birthday']} rules={[{ required: true, message: 'Required' }]}>
-//                         <DatePicker style={{ width: '100%' }} />
-//                     </Form.Item>
-//                 </div>
-
-//                 <Form.Item className="[&_button]:w-[200px]">
-//                     <Button type="primary" htmlType="submit">Submit</Button>
-//                 </Form.Item>
-//             </Form>
-//         </div>
-//     );
-// }
-
-// export default StudentsForm;

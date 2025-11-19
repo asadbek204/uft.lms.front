@@ -9,6 +9,7 @@ import Login from './pages/Login/Login.tsx';
 import ForgotPassword from './pages/Forgot/Forgot.tsx';
 // import StudentsFormOrg from './StudentsFormOrg.tsx';
 import TCHTopicsAttendance from './TeacherRole/TCHTopicsPage/TCHTopicsSingle/TCHTopicsSingleDetail/TCHTopicsAttendance';
+import client from "./components/services/index.tsx";
 
 export type TGlobalContext = {
     lang: Langs;
@@ -35,14 +36,41 @@ function App() {
     const [token, setToken] = useState<string | null>(window.localStorage.getItem('token'));
     const [userId, setUserId] = useState<number>(Number(window.localStorage.getItem('id')));
 
-    useEffect(() => {
-        const storedRole = window.localStorage.getItem('role') as Roles;
-        if (!storedRole) {
-            window.localStorage.setItem('role', Roles.Guest);
-        }
-        setRole(storedRole || Roles.Guest);
-        setToken(window.localStorage.getItem('token'));
-    }, []);
+     useEffect(() => {
+       const fetchUser = async () => {
+         try {
+           const res = await client.get("accounts/me/");
+           const roles = res.data.roles;
+
+           let detectedRole = Roles.Guest;
+
+           if (roles.manager) detectedRole = Roles.Manager;
+           else if (roles.students?.length > 0) detectedRole = Roles.Student;
+           else if (roles.teacher) detectedRole = Roles.Teacher;
+           else if (roles.admin) detectedRole = Roles.Admin;
+
+           setRole(detectedRole);
+           window.localStorage.setItem("role", detectedRole); // optional, xohlasangiz olib tashlaymiz
+         } catch (error) {
+           console.error("User data error:", error);
+           setRole(Roles.Guest);
+         }
+       };
+
+       fetchUser();
+     }, []);
+
+     useEffect(() => {
+       const storedRole = window.localStorage.getItem("role") as Roles;
+       if (!storedRole) {
+         window.localStorage.setItem("role", Roles.Guest);
+       }
+       setRole(storedRole || Roles.Guest);
+       setToken(window.localStorage.getItem("token"));
+     }, []);
+
+   
+
 
     useEffect(() => {
         setPages(PagesMap.get(role) as Pages[]);
