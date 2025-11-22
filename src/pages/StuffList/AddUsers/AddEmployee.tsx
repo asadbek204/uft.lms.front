@@ -246,7 +246,7 @@ const AddEmployee: React.FC = () => {
                     <Form.Item label={contents.label7} name="role" rules={[{ required: true, message: contents.required }]}>
                         <Select>
                             <Select.Option value="1">{contents.option2}</Select.Option>
-                            <Select.Option value="2">{contents.option3}</Select.Option>
+                            {/* <Select.Option value="2">{contents.option3}</Select.Option> */}
                             <Select.Option value="3">{contents.option4}</Select.Option>
                             <Select.Option value="4">{contents.option5}</Select.Option>
                             <Select.Option value="5">{contents.option6}</Select.Option>

@@ -32,41 +32,45 @@ function App() {
     const [role, setRole] = useState<Roles>(window.localStorage.getItem('role') as Roles || Roles.Guest);
     const [pages, setPages] = useState<Pages[]>([]);
     const [page, setPage] = useState<Pages>(Pages.Attendance);
-    const [lang, setLang] = useState<Langs>((window.localStorage.getItem('lang') as Langs) ?? Langs.UZ);
-    const [token, setToken] = useState<string | null>(window.localStorage.getItem('token'));
+    const [lang, setLang] = useState<Langs>(
+      (window.localStorage.getItem("lang") as Langs) ?? Langs.UZ
+    );
     const [userId, setUserId] = useState<number>(Number(window.localStorage.getItem('id')));
 
      useEffect(() => {
        const fetchUser = async () => {
          try {
+           // Faqat token bo'lsa accounts/me/ so'rovi yuborish
+           const storedToken = window.localStorage.getItem("token");
+           if (!storedToken) {
+             setRole(Roles.Guest);
+             return;
+           }
+
            const res = await client.get("accounts/me/");
            const roles = res.data.roles;
 
            let detectedRole = Roles.Guest;
 
-           if (roles.manager) detectedRole = Roles.Manager;
-           else if (roles.students?.length > 0) detectedRole = Roles.Student;
+           if (roles.admin) detectedRole = Roles.Admin;
+           else if (roles.manager) detectedRole = Roles.Manager;
            else if (roles.teacher) detectedRole = Roles.Teacher;
-           else if (roles.admin) detectedRole = Roles.Admin;
+           else if (roles.students?.length > 0) detectedRole = Roles.Student;
+           else if (roles.accountant) detectedRole = Roles.Accountant;
 
            setRole(detectedRole);
-           window.localStorage.setItem("role", detectedRole); // optional, xohlasangiz olib tashlaymiz
+           window.localStorage.setItem("role", detectedRole);
          } catch (error) {
            console.error("User data error:", error);
+           window.localStorage.removeItem("token");
+           window.localStorage.removeItem("refresh");
+           window.localStorage.removeItem("id");
+           window.localStorage.removeItem("roles");
            setRole(Roles.Guest);
          }
        };
 
        fetchUser();
-     }, []);
-
-     useEffect(() => {
-       const storedRole = window.localStorage.getItem("role") as Roles;
-       if (!storedRole) {
-         window.localStorage.setItem("role", Roles.Guest);
-       }
-       setRole(storedRole || Roles.Guest);
-       setToken(window.localStorage.getItem("token"));
      }, []);
 
    
@@ -78,6 +82,7 @@ function App() {
 
     const location = useLocation();
     const currentUrl = location.pathname;
+    const token = window.localStorage.getItem("token");
 
     const isLoginPage = currentUrl.includes('/login');
     const isForgotPasswordPage = currentUrl.includes('/forgot');

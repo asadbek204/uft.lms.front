@@ -81,32 +81,40 @@ const Login = () => {
         e.preventDefault();
         if (loginInput.current && passwordInput.current) {
             try {
-                const response = await client.post("token/", {
-                    phone_number: loginInput.current.value,
-                    password: passwordInput.current.value,
-                });
-                toast.success(contents.toast1);
+              const response = await client.post("token/", {
+                phone_number: loginInput.current.value,
+                password: passwordInput.current.value,
+              });
+              toast.success(contents.toast1);
 
-                window.localStorage.setItem(
-                    "roles",
-                    JSON.stringify(response.data.role)
-                );
-                window.localStorage.setItem(
-                    "role",
-                    response.data.role.includes(Roles.Student)
-                        ? Roles.Student.toString()
-                        : response.data.role[0]
-                );
-                window.localStorage.setItem("token", response.data.access);
-                window.localStorage.setItem("refresh", response.data.refresh);
-                window.localStorage.setItem("id", response.data.id);
-                window.location.href = "/";
+              window.localStorage.setItem(
+                "roles",
+                JSON.stringify(response.data.role)
+              );
+              window.localStorage.setItem(
+                "role",
+                response.data.role.includes(Roles.Student)
+                  ? Roles.Student.toString()
+                  : response.data.role[0]
+              );
+              window.localStorage.setItem("token", response.data.access);
+              window.localStorage.setItem("refresh", response.data.refresh);
+              window.localStorage.setItem("id", response.data.id);
+              // Using navigate instead of window.location.href to prevent full page reload
+              window.location.href = "/";
             } catch (err) {
-                if (err instanceof Error) {
-                    toast.error(contents.toast2);
-                } else {
-                    toast.error(contents.toast3);
-                }
+              // Clear invalid tokens on login error
+              window.localStorage.removeItem("token");
+              window.localStorage.removeItem("refresh");
+              window.localStorage.removeItem("id");
+              window.localStorage.removeItem("roles");
+              window.localStorage.removeItem("role");
+
+              if (err instanceof Error) {
+                toast.error(contents.toast2);
+              } else {
+                toast.error(contents.toast3);
+              }
             }
         }
     };

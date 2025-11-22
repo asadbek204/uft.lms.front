@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Form, message } from "antd";
+import { Form, message, Tabs } from "antd";
 import { GlobalContext } from "../../App";
 import { Langs } from "../../enums";
 import client from "../../components/services";
@@ -16,12 +16,12 @@ const contentsMap = new Map<Langs, any>([
     Langs.UZ,
     {
       title: "Talaba ma'lumotlarini tahrirlash",
-      subtitle: "Kerakli maydonlarni o‘zgartiring va saqlang",
+      subtitle: "Kerakli maydonlarni o'zgartiring va saqlang",
       save: "Saqlash",
       cancel: "Bekor qilish",
       new_contract: "Yangi shartnoma",
-      delete: "O‘chirish",
-      required: "Bu maydon to‘ldirilishi shart",
+      delete: "O'chirish",
+      required: "Bu maydon to'ldirilishi shart",
       save_success: "Ma'lumotlar muvaffaqiyatli saqlandi!",
       save_error: "Saqlashda xatolik",
       first_name: "Ism",
@@ -32,7 +32,7 @@ const contentsMap = new Map<Langs, any>([
       pinfl: "JSHSHIR",
       address: "Yashash manzili",
       email: "Email",
-      birthday: "Tug‘ilgan sana",
+      birthday: "Tug'ilgan sana",
       personal_info: "Shaxsiy ma'lumotlar",
       family_info: "Oilaviy ma'lumotlar",
       father_info: "Ota ma'lumotlari",
@@ -100,71 +100,80 @@ function StudentDetailPage() {
   const navigate = useNavigate();
   const { lang, role } = useContext(GlobalContext);
   const t = contentsMap.get(lang) || contentsMap.get(Langs.UZ);
-  const [form] = Form.useForm();
+  const [personalForm] = Form.useForm();
+  const [familyForm] = Form.useForm();
 
   const [loading, setLoading] = useState(true);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("personal");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const res = await client.get(`students/retrive/${id}/`);
-        const doc = res.data.document?.[0] || {};
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const res = await client.get(`students/retrive/${id}/`);
+      const doc = res.data.document?.[0] || {};
+      const userPinfl = res.data.user.pinfl;
+      const docPinfl = doc.pinfl;
 
-        const initialValues = {
-          first_name: res.data.user.first_name || "",
-          last_name: res.data.user.last_name || "",
-          sure_name: res.data.user.sure_name || "",
-          phone_number: res.data.user.phone_number?.replace("+998", "") || "",
-          passport: doc.passport_seria || res.data.user.passport || "",
-          pinfl: doc.pinfl || res.data.user.pinfl || "",
-          address: doc.address || "",
-          email: res.data.user.email || "",
-          birthday: res.data.user.birthday
-            ? dayjs(res.data.user.birthday)
-            : null,
+      const finalPinfl = userPinfl 
+        ? String(userPinfl) 
+        : docPinfl 
+          ? String(docPinfl).padStart(14, "0").slice(0, 14)
+          : "";
 
-          father: {
-            first_name: res.data.father?.first_name || "",
-            last_name: res.data.father?.sure_name || "",
-            sure_name: res.data.father?.last_name || "",
-            passport: res.data.father?.passport || "",
-            pinfl: res.data.father?.pinfl || "",
-            phone_number:
-              res.data.father?.phone_number?.replace("+998", "") || "",
-            email: res.data.father?.email || "",
-            birthday: res.data.father?.birthday
-              ? dayjs(res.data.father.birthday)
-              : null,
-          },
-          mother: {
-            first_name: res.data.mother?.first_name || "",
-            last_name: res.data.mother?.sure_name || "",
-            sure_name: res.data.mother?.last_name || "",
-            passport: res.data.mother?.passport || "",
-            pinfl: res.data.mother?.pinfl || "",
-            phone_number:
-              res.data.mother?.phone_number?.replace("+998", "") || "",
-            email: res.data.mother?.email || "",
-            birthday: res.data.mother?.birthday
-              ? dayjs(res.data.mother.birthday)
-              : null,
-          },
-        };
+      const personalValues = {
+        first_name: res.data.user.first_name || "",
+        last_name: res.data.user.last_name || "",
+        sure_name: res.data.user.sure_name || "",
+        phone_number: res.data.user.phone_number?.replace("+998", "") || "",
+        passport: doc.passport_seria || res.data.user.passport || "",
+        pinfl: finalPinfl,
+        address: doc.address || "",
+        email: res.data.user.email || "",
+        birthday: res.data.user.birthday ? dayjs(res.data.user.birthday) : null,
+      };
 
-        form.setFieldsValue(initialValues);
-      } catch {
-        message.error("Ma'lumotlar yuklanmadi");
-        navigate(-1);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [id, form, navigate]);
+      const familyValues = {
+        father: {
+          first_name: res.data.father?.first_name || "",
+          last_name: res.data.father?.sure_name || "",
+          sure_name: res.data.father?.last_name || "",
+          passport: res.data.father?.passport || "",
+          pinfl: res.data.father?.pinfl ? String(res.data.father.pinfl) : "",
+          phone_number: res.data.father?.phone_number?.replace("+998", "") || "",
+          email: res.data.father?.email || "",
+          birthday: res.data.father?.birthday ? dayjs(res.data.father.birthday) : null,
+        },
+        mother: {
+          first_name: res.data.mother?.first_name || "",
+          last_name: res.data.mother?.sure_name || "",
+          sure_name: res.data.mother?.last_name || "",
+          passport: res.data.mother?.passport || "",
+          pinfl: res.data.mother?.pinfl ? String(res.data.mother.pinfl) : "",
+          phone_number: res.data.mother?.phone_number?.replace("+998", "") || "",
+          email: res.data.mother?.email || "",
+          birthday: res.data.mother?.birthday ? dayjs(res.data.mother.birthday) : null,
+        },
+      };
 
-  const onFinish = async (values: any) => {
+      personalForm.setFieldsValue(personalValues);
+      familyForm.setFieldsValue(familyValues);
+      
+    } catch (error) {
+      console.error(error);
+      message.error("Ma'lumotlar yuklanmadi");
+      navigate(-1);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  fetchData();
+}, [id, navigate]);
+
+
+
+  const onPersonalFinish = async (values: any) => {
     try {
       const cleanedStudent = {
         first_name: values.first_name?.trim(),
@@ -174,11 +183,23 @@ function StudentDetailPage() {
           ? "+998" + values.phone_number.replace(/\D/g, "")
           : "",
         passport: values.passport?.toUpperCase(),
-        pinfl: values.pinfl,
+        pinfl: String(values.pinfl || "").trim(),
         email: values.email,
         birthday: values.birthday ? values.birthday.format("YYYY-MM-DD") : null,
       };
 
+      await client.patch(`students/update/${id}/`, cleanedStudent);
+      message.success(t.save_success);
+    } catch (err: any) {
+      const msg = err.response?.data
+        ? Object.values(err.response.data).flat().join(", ")
+        : t.save_error;
+      message.error(msg);
+    }
+  };
+
+  const onFamilyFinish = async (values: any) => {
+    try {
       const parents = {
         father: values.father
           ? {
@@ -214,11 +235,8 @@ function StudentDetailPage() {
           : {},
       };
 
-      await client.patch(`students/update/${id}/`, cleanedStudent);
       await client.patch(`students/fill/${id}/`, parents);
-
       message.success(t.save_success);
-      window.location.reload();
     } catch (err: any) {
       const msg = err.response?.data
         ? Object.values(err.response.data).flat().join(", ")
@@ -227,30 +245,73 @@ function StudentDetailPage() {
     }
   };
 
+  const handleSave = () => {
+    if (activeTab === "personal") {
+      personalForm.submit();
+    } else {
+      familyForm.submit();
+    }
+  };
+
   if (loading) return <Loading />;
 
-  const fullName = `${form.getFieldValue("last_name") || ""} ${
-    form.getFieldValue("first_name") || ""
-  } ${form.getFieldValue("sure_name") || ""}`.trim();
+  const fullName = `${personalForm.getFieldValue("last_name") || ""} ${
+    personalForm.getFieldValue("first_name") || ""
+  } ${personalForm.getFieldValue("sure_name") || ""}`.trim();
+
+  const tabItems = [
+    {
+      key: "personal",
+      label: (
+        <span className="text-base font-medium">
+          <i className="fa-solid fa-user mr-2" />
+          {t.personal_info}
+        </span>
+      ),
+      children: (
+        <Form form={personalForm} onFinish={onPersonalFinish} layout="vertical">
+          <PersonalInfoSection contents={t} />
+        </Form>
+      ),
+    },
+    {
+      key: "family",
+      label: (
+        <span className="text-base font-medium">
+          <i className="fa-solid fa-users mr-2" />
+          {t.family_info}
+        </span>
+      ),
+      children: (
+        <Form form={familyForm} onFinish={onFamilyFinish} layout="vertical">
+          <FamilyInfoSection contents={t} />
+        </Form>
+      ),
+    },
+  ];
 
   return (
-    <div className="w-full overflow-y-auto ">
-      <div className="">
+    <div className="w-full overflow-y-auto">
+      <div>
         <AttachContractHeader
           fullName={fullName}
           subtitle={t.subtitle}
           role={role}
           id={id!}
           t={t}
-          onSave={() => form.submit()}
+          onSave={handleSave}
           onCancel={() => window.location.reload()}
           onDelete={() => setIsDeleteOpen(true)}
         />
 
-        <Form form={form} onFinish={onFinish} layout="vertical">
-          <PersonalInfoSection contents={t} />
-          <FamilyInfoSection contents={t} />
-        </Form>
+        <div className="px-6">
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={tabItems}
+            size="large"
+          />
+        </div>
       </div>
 
       <ConfirmDeleteModal
@@ -259,10 +320,10 @@ function StudentDetailPage() {
         onConfirm={async () => {
           try {
             await client.delete(`students/delete/${id}/`);
-            message.success("Talaba o‘chirildi");
+            message.success("Talaba o'chirildi");
             navigate(-1);
           } catch {
-            message.error("O‘chirishda xatolik");
+            message.error("O'chirishda xatolik");
           }
         }}
       />

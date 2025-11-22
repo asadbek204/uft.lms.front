@@ -36,52 +36,68 @@ client.interceptors.request.use(
 client.interceptors.response.use(
     (response: AxiosResponse) => response,
     async (error: AxiosError) => {
-        const originalRequest = error.config as CustomAxiosRequestConfig;
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
-            const refreshToken = window.localStorage.getItem('refresh');
-            if (!refreshToken) {
-                window.localStorage.removeItem('id');
-                window.location.pathname = '/login';
-                return Promise.reject(error);
-            }
-            try {
-                const response = await fetch(`${APIURL}token/refresh/`, {method: 'POST', body: JSON.stringify({refresh: refreshToken}), headers: {'Content-Type': 'application/json'}});
-                if (response.status === 401) {
-                    console.log('some error in there')
-                    window.localStorage.removeItem('token');
-                    window.localStorage.removeItem('refresh');
-                    window.localStorage.removeItem('roles');
-                    window.localStorage.removeItem('id');
-                    window.location.pathname = '/login';
-                    return Promise.reject(error);
-                }
-                console.log(response.status)
-                const data = await response.json()
-                const newToken = data.access;
-                const newRefresh = data.refresh;
-                const roles = data.role as Roles[];
-                
+      const originalRequest = error.config as CustomAxiosRequestConfig;
 
-                window.localStorage.setItem('roles', JSON.stringify(roles));
-                window.localStorage.setItem('token', newToken);
-                window.localStorage.setItem('refresh', newRefresh);
-                
-                if (originalRequest.headers) {
-                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                }
-                return client(originalRequest);
-            } catch (refreshError) {
-                console.log('some error in there')
-                window.localStorage.removeItem('token');
-                window.localStorage.removeItem('refresh');
-                window.localStorage.removeItem('roles');
-                window.localStorage.removeItem('id');
-                window.location.pathname = '/login';
-                return Promise.reject(refreshError);
-            }
+      // 401 xatoligi va retry bo'lmagan bo'lsa
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+        const refreshToken = window.localStorage.getItem("refresh");
+
+        // Token yo'q bo'lsa login-ga yo'nalt
+        if (!refreshToken) {
+          window.localStorage.removeItem("id");
+          window.localStorage.removeItem("token");
+          window.localStorage.removeItem("refresh");
+          window.localStorage.removeItem("roles");
+          window.localStorage.removeItem("role");
+          window.location.pathname = "/login";
+          return Promise.reject(error);
         }
-        return Promise.reject(error);
+
+        try {
+          const response = await fetch(`${APIURL}token/refresh/`, {
+            method: "POST",
+            body: JSON.stringify({ refresh: refreshToken }),
+            headers: { "Content-Type": "application/json" },
+          });
+
+          // Agar refresh token ham invalid bo'lsa
+          if (response.status === 401 || response.status === 400) {
+            console.log("Refresh token invalid");
+            window.localStorage.removeItem("token");
+            window.localStorage.removeItem("refresh");
+            window.localStorage.removeItem("roles");
+            window.localStorage.removeItem("id");
+            window.localStorage.removeItem("role");
+            window.location.pathname = "/login";
+            return Promise.reject(error);
+          }
+
+          const data = await response.json();
+          const newToken = data.access;
+          const newRefresh = data.refresh;
+          const roles = data.role as Roles[];
+
+          window.localStorage.setItem("roles", JSON.stringify(roles));
+          window.localStorage.setItem("token", newToken);
+          window.localStorage.setItem("refresh", newRefresh);
+
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          }
+          return client(originalRequest);
+        } catch (refreshError) {
+          console.error("Token refresh error:", refreshError);
+          window.localStorage.removeItem("token");
+          window.localStorage.removeItem("refresh");
+          window.localStorage.removeItem("roles");
+          window.localStorage.removeItem("id");
+          window.localStorage.removeItem("role");
+          window.location.pathname = "/login";
+          return Promise.reject(refreshError);
+        }
+      }
+      return Promise.reject(error);
     }
 );
 
