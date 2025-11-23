@@ -115,11 +115,11 @@ useEffect(() => {
       const userPinfl = res.data.user.pinfl;
       const docPinfl = doc.pinfl;
 
-      const finalPinfl = userPinfl 
-        ? String(userPinfl) 
-        : docPinfl 
-          ? String(docPinfl).padStart(14, "0").slice(0, 14)
-          : "";
+      const finalPinfl = userPinfl
+        ? String(userPinfl)
+        : docPinfl
+        ? String(docPinfl).padStart(14, "0").slice(0, 14)
+        : "";
 
       const personalValues = {
         first_name: res.data.user.first_name || "",
@@ -136,29 +136,34 @@ useEffect(() => {
       const familyValues = {
         father: {
           first_name: res.data.father?.first_name || "",
-          last_name: res.data.father?.sure_name || "",
-          sure_name: res.data.father?.last_name || "",
+          last_name: res.data.father?.last_name || "",
+          sure_name: res.data.father?.sure_name || "",
           passport: res.data.father?.passport || "",
           pinfl: res.data.father?.pinfl ? String(res.data.father.pinfl) : "",
-          phone_number: res.data.father?.phone_number?.replace("+998", "") || "",
+          phone_number:
+            res.data.father?.phone_number?.replace("+998", "") || "",
           email: res.data.father?.email || "",
-          birthday: res.data.father?.birthday ? dayjs(res.data.father.birthday) : null,
+          birthday: res.data.father?.birthday
+            ? dayjs(res.data.father.birthday)
+            : null,
         },
         mother: {
           first_name: res.data.mother?.first_name || "",
-          last_name: res.data.mother?.sure_name || "",
-          sure_name: res.data.mother?.last_name || "",
+          last_name: res.data.mother?.last_name || "",
+          sure_name: res.data.mother?.sure_name || "",
           passport: res.data.mother?.passport || "",
           pinfl: res.data.mother?.pinfl ? String(res.data.mother.pinfl) : "",
-          phone_number: res.data.mother?.phone_number?.replace("+998", "") || "",
+          phone_number:
+            res.data.mother?.phone_number?.replace("+998", "") || "",
           email: res.data.mother?.email || "",
-          birthday: res.data.mother?.birthday ? dayjs(res.data.mother.birthday) : null,
+          birthday: res.data.mother?.birthday
+            ? dayjs(res.data.mother.birthday)
+            : null,
         },
       };
 
       personalForm.setFieldsValue(personalValues);
       familyForm.setFieldsValue(familyValues);
-      
     } catch (error) {
       console.error(error);
       message.error("Ma'lumotlar yuklanmadi");
@@ -167,83 +172,79 @@ useEffect(() => {
       setLoading(false);
     }
   };
-  
+
   fetchData();
 }, [id, navigate]);
 
+const onPersonalFinish = async (values: any) => {
+  try {
+    const cleanedStudent = {
+      first_name: values.first_name?.trim(),
+      last_name: values.last_name?.trim(),
+      sure_name: values.sure_name?.trim(),
+      phone_number: values.phone_number
+        ? "+998" + values.phone_number.replace(/\D/g, "")
+        : "",
+      passport: values.passport?.toUpperCase(),
+      pinfl: String(values.pinfl || "").trim(),
+      email: values.email,
+      birthday: values.birthday ? values.birthday.format("YYYY-MM-DD") : null,
+    };
 
+    await client.patch(`students/update/${id}/`, cleanedStudent);
+    message.success(t.save_success);
+  } catch (err: any) {
+    const msg = err.response?.data
+      ? Object.values(err.response.data).flat().join(", ")
+      : t.save_error;
+    message.error(msg);
+  }
+};
 
-  const onPersonalFinish = async (values: any) => {
-    try {
-      const cleanedStudent = {
-        first_name: values.first_name?.trim(),
-        last_name: values.last_name?.trim(),
-        sure_name: values.sure_name?.trim(),
-        phone_number: values.phone_number
-          ? "+998" + values.phone_number.replace(/\D/g, "")
-          : "",
-        passport: values.passport?.toUpperCase(),
-        pinfl: String(values.pinfl || "").trim(),
-        email: values.email,
-        birthday: values.birthday ? values.birthday.format("YYYY-MM-DD") : null,
-      };
+const onFamilyFinish = async (values: any) => {
+  try {
+    const cleanParentData = (parent: any) => {
+      if (!parent) return null;
 
-      await client.patch(`students/update/${id}/`, cleanedStudent);
-      message.success(t.save_success);
-    } catch (err: any) {
-      const msg = err.response?.data
-        ? Object.values(err.response.data).flat().join(", ")
-        : t.save_error;
-      message.error(msg);
-    }
-  };
+      const cleaned: any = {};
 
-  const onFamilyFinish = async (values: any) => {
-    try {
-      const parents = {
-        father: values.father
-          ? {
-              first_name: values.father.first_name?.trim() || "",
-              last_name: values.father.sure_name?.trim() || "",
-              sure_name: values.father.last_name?.trim() || "",
-              passport: values.father.passport || "",
-              pinfl: values.father.pinfl || "",
-              phone_number: values.father.phone_number
-                ? "+998" + values.father.phone_number.replace(/\D/g, "")
-                : "",
-              email: values.father.email || "",
-              birthday: values.father.birthday
-                ? values.father.birthday.format("YYYY-MM-DD")
-                : null,
-            }
-          : {},
-        mother: values.mother
-          ? {
-              first_name: values.mother.first_name?.trim() || "",
-              last_name: values.mother.sure_name?.trim() || "",
-              sure_name: values.mother.last_name?.trim() || "",
-              passport: values.mother.passport || "",
-              pinfl: values.mother.pinfl || "",
-              phone_number: values.mother.phone_number
-                ? "+998" + values.mother.phone_number.replace(/\D/g, "")
-                : "",
-              email: values.mother.email || "",
-              birthday: values.mother.birthday
-                ? values.mother.birthday.format("YYYY-MM-DD")
-                : null,
-            }
-          : {},
-      };
+      if (parent.first_name?.trim())
+        cleaned.first_name = parent.first_name.trim();
+      if (parent.last_name?.trim()) cleaned.last_name = parent.last_name.trim();
+      if (parent.sure_name?.trim()) cleaned.sure_name = parent.sure_name.trim();
+      if (parent.passport?.trim()) cleaned.passport = parent.passport.trim();
+      if (parent.pinfl?.trim()) cleaned.pinfl = parent.pinfl.trim();
+      if (parent.phone_number?.trim()) {
+        cleaned.phone_number = "+998" + parent.phone_number.replace(/\D/g, "");
+      }
+      if (parent.email?.trim()) cleaned.email = parent.email.trim();
+      if (parent.birthday)
+        cleaned.birthday = parent.birthday.format("YYYY-MM-DD");
 
+      return Object.keys(cleaned).length > 0 ? cleaned : null;
+    };
+
+    const parents: any = {};
+
+    const fatherData = cleanParentData(values.father);
+    if (fatherData) parents.father = fatherData;
+
+    const motherData = cleanParentData(values.mother);
+    if (motherData) parents.mother = motherData;
+
+    if (Object.keys(parents).length > 0) {
       await client.patch(`students/fill/${id}/`, parents);
       message.success(t.save_success);
-    } catch (err: any) {
-      const msg = err.response?.data
-        ? Object.values(err.response.data).flat().join(", ")
-        : t.save_error;
-      message.error(msg);
+    } else {
+      message.info("Hech qanday ma'lumot o'zgartirilmadi");
     }
-  };
+  } catch (err: any) {
+    const msg = err.response?.data
+      ? Object.values(err.response.data).flat().join(", ")
+      : t.save_error;
+    message.error(msg);
+  }
+};
 
   const handleSave = () => {
     if (activeTab === "personal") {
