@@ -30,12 +30,12 @@ const TCHTopicsAttendance = () => {
     const title = titleInput.current.value
     client.post(`education/todays-lesson/${id}/`, { title }).then(res => {
       setLesson(res.data as Lesson)
-      websocketConnect()
+      websocketConnect(res.data?.id)
     })
   }
 
-  const websocketConnect = () => {
-    const wsConnection = new WebSocket(`wss://${APIURL}/ws/attendance/${lesson.id}/${window.localStorage.getItem('token')}/`)
+  const websocketConnect = (lesson_id: number) => {
+    const wsConnection = new WebSocket(`wss://${APIURL}/ws/attendance/${lesson_id}/${window.localStorage.getItem('token')}/`)
     wsConnection.onmessage = (event) => {
       const data = JSON.parse(event.data)
       console.log(data)
