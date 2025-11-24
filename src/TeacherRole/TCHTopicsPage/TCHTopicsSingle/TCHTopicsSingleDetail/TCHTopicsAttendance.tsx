@@ -1,5 +1,5 @@
 import { useRef, useState } from "react"
-import client, { APIURL } from "../../../../components/services"
+import client, { DOMAIN_NAME } from "../../../../components/services"
 import { useParams } from 'react-router-dom'
 
 interface Lesson {
@@ -35,7 +35,7 @@ const TCHTopicsAttendance = () => {
   }
 
   const websocketConnect = (lesson_id: number) => {
-    const wsConnection = new WebSocket(`wss://${APIURL}/ws/attendance/${lesson_id}/${window.localStorage.getItem('token')}/`)
+    const wsConnection = new WebSocket(`wss://${DOMAIN_NAME}/ws/attendance/${lesson_id}/${window.localStorage.getItem('token')}/`)
     wsConnection.onmessage = (event) => {
       const data = JSON.parse(event.data)
       console.log(data)

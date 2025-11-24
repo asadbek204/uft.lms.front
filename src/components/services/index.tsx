@@ -6,8 +6,8 @@ axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 axios.defaults.withXSRFToken = true;
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.withCredentials = true;
-
-export const APIURL: string = "https://lms.academy.uft.uz/api/";
+export const DOMAIN_NAME = "lms.academy.uft.uz";
+export const APIURL: string = `https://${DOMAIN_NAME}/api/`;
 
 export const client: AxiosInstance = axios.create({
     baseURL: APIURL,
