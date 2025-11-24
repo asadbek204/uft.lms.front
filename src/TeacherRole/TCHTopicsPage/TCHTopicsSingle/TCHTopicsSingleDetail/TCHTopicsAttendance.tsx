@@ -36,9 +36,9 @@ const TCHTopicsAttendance = () => {
 
   const websocketConnect = () => {
     const wsConnection = new WebSocket(`wss://${APIURL}/ws/attendance/${lesson.id}/${window.localStorage.getItem('token')}/`)
-    setWs(wsConnection)
     wsConnection.onmessage = (event) => {
       const data = JSON.parse(event.data)
+      console.log(data)
       if (data.student_id && data.user) {
         showRequest(data as Student)
       }
@@ -46,6 +46,7 @@ const TCHTopicsAttendance = () => {
         setQrUrl(data)
       }
     }
+    setWs(wsConnection)
   }
 
   const answerRequest = (student_id: number, status: boolean) => {
