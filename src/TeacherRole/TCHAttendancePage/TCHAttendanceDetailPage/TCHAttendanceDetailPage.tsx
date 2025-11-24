@@ -95,8 +95,7 @@ export default function TCHAttendanceTablePage() {
           client.get(`education/lessons/?group=${id}&month=${currentMonth.format("YYYY-MM")}`),
         ]);
 
-        console.log("📥 Attendance:", attRes.data);
-        console.log("📥 Lessons:", lessonRes.data);
+  
 
         setAttendanceData(attRes.data);
         setStudents(stuRes.data.filter((s: any) => s.status === "active"));
@@ -113,50 +112,58 @@ export default function TCHAttendanceTablePage() {
     fetchData();
   }, [id, currentMonth, t.errorFetchingData]);
 
-  const handleAttendanceSave = async (data: {
-    id?: number;
-    student: number;
-    lesson: number;
-    date: string;
-    status: boolean;
-    score: number | null;
-  }) => {
-    try {
-      let response;
+ const handleAttendanceSave = async (data: {
+  id?: number;
+  student: number;
+  lesson: number;
+  date: string;
+  status: boolean;
+  score: number | null;
+}) => {
+  try {
+    let response;
 
-      if (data.id) {
-        response = await client.patch(`education/attendance/${data.id}/`, {
-          status: data.status,
-          score: data.score,
-        });
-      } else {
-        response = await client.post("education/attendance/", {
-          student: data.student,
-          lesson: data.lesson,
-          date: data.date,
-          status: data.status,
-          score: data.score,
-        });
-      }
-
-      setAttendanceData((prev) => {
-        if (data.id) {
-          return prev.map((r) => (r.id === data.id ? { ...r, ...response.data } : r));
-        } else {
-          return [...prev, response.data];
-        }
+    if (data.id) {
+      response = await client.patch(`education/attendance/${data.id}/`, {
+        status: data.status,
+        score: data.score,
       });
-
-      toast.success(lang === Langs.UZ ? "Saqlandi!" : lang === Langs.RU ? "Сохранено!" : "Saved!");
-    } catch (err: any) {
-      console.error("❌ Save error:", err);
-      const msg =
-        err.response?.data?.non_field_errors?.[0] ||
-        err.response?.data?.detail ||
-        t.errorUpdatingData;
-      toast.error(msg);
+    } else {
+      response = await client.post("education/attendance/", {
+        student: data.student,
+        lesson: data.lesson,
+        date: data.date,
+        status: data.status,
+        score: data.score,
+      });
     }
-  };
+
+    const updatedRecord = {
+      ...response.data,
+      student: { id: response.data.student?.id || data.student },
+      lesson: { id: response.data.lesson?.id || data.lesson },
+    };
+
+    setAttendanceData((prev) => {
+      const exists = prev.some((r) => r.id === updatedRecord.id);
+      if (exists) {
+        return prev.map((r) => (r.id === updatedRecord.id ? updatedRecord : r));
+      } else {
+        return [...prev, updatedRecord];
+      }
+    });
+
+    toast.success("Saqlandi!");
+  } catch (err: any) {
+    const msg =
+      err.response?.data?.non_field_errors?.[0] ||
+      err.response?.data?.detail ||
+      "Xatolik yuz berdi";
+    toast.error(msg);
+  }
+};
+
+  
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
@@ -257,8 +264,7 @@ export default function TCHAttendanceTablePage() {
   if (loading) return <Loading />;
 
   return (
-    <div className=" w-full mt-12 md:mt-0">
-      <div className=" px-4">
+    <div className="w-full px-4 mt-12 md:mt-0 ">
         <AttendanceHeader
           groupName={groupName}
           title={t.title}
@@ -293,7 +299,6 @@ export default function TCHAttendanceTablePage() {
             lang={lang === Langs.UZ ? "uz" : lang === Langs.RU ? "ru" : "en"}
           />
         </div>
-      </div>
     </div>
   );
 }

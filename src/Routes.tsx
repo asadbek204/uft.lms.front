@@ -22,7 +22,7 @@ import GroupSingle from './pages/GroupsPage/GroupSingle/GroupSingle.tsx';
 import Login from './pages/Login/Login'
 import Forgot from './pages/Forgot/Forgot.tsx';
 // import DebtorsPageUsers from './pages/DebtorsPage/DebtorsPageUsers/DebtorsPageUsers.tsx'
-import AttendanceTablePage from "./pages/AttendancePage/AttendanceTablePage/AttendanceTablePage.tsx";
+// import AttendanceTablePage from "./pages/AttendancePage/AttendanceTablePage/AttendanceTablePage.tsx";
 import {Roles} from './enums'
 import {GlobalContext} from "../src/App.tsx";
 import {Langs} from "../src/enums.ts"
@@ -145,7 +145,7 @@ const admin: ReactNode = (
         <Route path="/videos/:groupId/:id" element={<VideoListItems/>}/>
         <Route path="/topics" element={<TopicsPage/>}/>
         <Route path="/attendance" element={<AttendancePage/>}/>
-        <Route path="/attendance/:id" element={<AttendanceTablePage/>}/>
+        <Route path="/attendance/:id" element={<TCHAttendanceDetailPage/>}/>
         <Route path='/change-password' element={<ChangePasswordPage/>}/>
         <Route path='/reset-password' element={<ResetPasswordPage/>}/>
         <Route path='/stafflist' element={<StaffList/>}/>

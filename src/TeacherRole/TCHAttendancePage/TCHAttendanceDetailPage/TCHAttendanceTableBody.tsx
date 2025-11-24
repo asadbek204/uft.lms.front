@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 
@@ -37,8 +37,8 @@ const t = {
 
 type AttendanceRecord = {
   id: number;
-  student: { id: number };
-  lesson: { id: number };
+  student: { id: number } | number;
+  lesson: { id: number } | number;
   date: string;
   status: boolean;
   score: number | null;
@@ -71,7 +71,7 @@ type Props = {
   tableHeading: string;
   noStudents: string;
   noStudentsMatch: string;
-  lang?: "uz" | "ru" | "en"; 
+  lang?: "uz" | "ru" | "en";
 };
 
 export default function AttendanceTableBody({
@@ -110,9 +110,11 @@ export default function AttendanceTableBody({
       return;
     }
 
-    const record = attendanceData.find(
-      (r) => r.student.id === student.id && r.lesson.id === lesson.id
-    );
+    const record = attendanceData.find((r: any) => {
+      const studentId = typeof r.student === "object" ? r.student.id : r.student;
+      const lessonId = typeof r.lesson === "object" ? r.lesson.id : r.lesson;
+      return studentId === student.id && lessonId === lesson.id;
+    });
 
     setSelectedStudent(student);
     setSelectedDate(date);
@@ -173,9 +175,12 @@ export default function AttendanceTableBody({
                 {dates.map((date) => {
                   const dateStr = date.format("YYYY-MM-DD");
                   const lesson = lessons.find((l) => dayjs(l.date).format("YYYY-MM-DD") === dateStr);
-                  const record = attendanceData.find(
-                    (r) => r.student.id === student.id && r.lesson.id === lesson?.id
-                  );
+
+                  const record = attendanceData.find((r: any) => {
+                    const studentId = typeof r.student === "object" ? r.student.id : r.student;
+                    const lessonId = typeof r.lesson === "object" ? r.lesson.id : r.lesson;
+                    return studentId === student.id && lesson && lessonId === lesson.id;
+                  });
 
                   return (
                     <td
@@ -189,8 +194,10 @@ export default function AttendanceTableBody({
                         ) : (
                           <span className="text-red-600">−</span>
                         )
-                      ) : (
+                      ) : lesson ? (
                         <span className="text-gray-300">−</span>
+                      ) : (
+                        <span className="text-gray-200">·</span>
                       )}
                     </td>
                   );
@@ -203,11 +210,11 @@ export default function AttendanceTableBody({
 
       {modalOpen && selectedStudent && selectedDate && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 animate-in fade-in zoom-in duration-200">
-            <h3 className="text-2xl font-bold text-center text-gray-800 mb-2">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full p-8">
+            <h3 className="text-2xl font-bold text-center text-gray-800 dark:text-white mb-2">
               {selectedStudent.user.first_name} {selectedStudent.user.last_name || ""}
             </h3>
-            <p className="text-center text-lg text-gray-600 mb-8">
+            <p className="text-center text-lg text-gray-600 dark:text-gray-400 mb-8">
               {selectedDate.format("DD.MM.YYYY")}
             </p>
 
@@ -256,15 +263,15 @@ export default function AttendanceTableBody({
                     max="10"
                     value={scoreInput}
                     onChange={(e) => setScoreInput(e.target.value)}
-                    className="w-full px-6 py-5 border-2 border-gray-300 rounded-xl text-3xl text-center font-bold focus:border-blue-500 focus:outline-none transition"
+                    className="w-full px-6 py-5 border-2 border-gray-300 dark:border-gray-600 rounded-xl text-3xl text-center font-bold focus:border-blue-500 focus:outline-none transition dark:bg-gray-700"
                     placeholder="5"
                   />
                 </div>
               )}
 
               {!status && (
-                <div className="text-center py-6  bg-red-50 rounded-xl">
-                  <p className="text-xl font-semibold text-red-600">
+                <div className="text-center py-6 bg-red-50 dark:bg-red-900/30 rounded-xl">
+                  <p className="text-xl font-semibold text-red-600 dark:text-red-400">
                     {t[lang].absentScore} <strong>0</strong>
                   </p>
                 </div>
@@ -274,7 +281,7 @@ export default function AttendanceTableBody({
             <div className="flex justify-end gap-4 mt-10">
               <button
                 onClick={() => setModalOpen(false)}
-                className="px-8 py-3 bg-gray-300 hover:bg-gray-400 rounded-xl font-medium text-gray-700 transition"
+                className="px-8 py-3 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-700 rounded-xl font-medium text-gray-700 dark:text-gray-300 transition"
               >
                 {t[lang].cancel}
               </button>
