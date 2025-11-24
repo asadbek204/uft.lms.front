@@ -1,430 +1,284 @@
-import {useContext, useEffect, useState} from "react";
-import {useParams} from "react-router-dom";
-import {toast} from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import * as XLSX from "xlsx";
+import React, { useContext, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import dayjs from "dayjs";
-import uzLocale from "dayjs/locale/uz-latn";
-import ruLocale from "dayjs/locale/ru";
-import enLocale from "dayjs/locale/en";
-import {Langs} from "../../../enums";
-import {GlobalContext} from "../../../App";
+import * as XLSX from "xlsx";
+import { Langs } from "../../../enums";
+import { GlobalContext } from "../../../App";
 import Loading from "../../../components/LoadingComponent/Loading";
 import client from "../../../components/services";
+import AttendanceHeader from "./TCHAttendanceHeader";
+import AttendanceCalendarControls from "./TCHAttendanceCalendarControls";
+import AttendanceTableBody from "./TCHAttendanceTableBody";
 
-const localeMap = {
-    [Langs.UZ]: uzLocale,
-    [Langs.RU]: ruLocale,
-    [Langs.EN]: enLocale,
+// To'liq tarjimalar
+const contentsMap = {
+  [Langs.UZ]: {
+    title: "Davomati",
+    tableHeading: "O'quvchilar",
+    noStudents: "O'quvchilar mavjud emas",
+    noStudentsMatch: "Qidiruvga mos talaba topilmadi",
+    searchPlaceholder: "Ism bo'yicha qidiruv",
+    errorFetchingData: "Ma'lumotlarni olishda xatolik",
+    errorUpdatingData: "Davomatni saqlashda xatolik",
+    downloadButton: "Yuklab olish",
+    present: "Keldi",
+    absent: "Kelmadi",
+    scoreLabel: "Baho",
+    noLesson: "Dars yo'q",
+  },
+  [Langs.RU]: {
+    title: "Посещаемость",
+    tableHeading: "Студенты",
+    noStudents: "Студенты отсутствуют",
+    noStudentsMatch: "Нет студентов по запросу",
+    searchPlaceholder: "Поиск по имени",
+    errorFetchingData: "Ошибка загрузки данных",
+    errorUpdatingData: "Ошибка сохранения посещаемости",
+    downloadButton: "Скачать",
+    present: "Присутствовал",
+    absent: "Отсутствовал",
+    scoreLabel: "Оценка",
+    noLesson: "Нет урока",
+  },
+  [Langs.EN]: {
+    title: "Attendance",
+    tableHeading: "Students",
+    noStudents: "No students",
+    noStudentsMatch: "No students found",
+    searchPlaceholder: "Search by name",
+    errorFetchingData: "Failed to load data",
+    errorUpdatingData: "Failed to save attendance",
+    downloadButton: "Download",
+    present: "Present",
+    absent: "Absent",
+    scoreLabel: "Score",
+    noLesson: "No lesson",
+  },
 };
 
-// Function to get month name based on language
-const getMonthName = (monthNumber: number, lang: Langs) => {
-    switch (lang) {
-        case Langs.UZ:
-            return [
-                "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
-                "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"
-            ][monthNumber];
-        case Langs.RU:
-            return [
-                "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
-                "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
-            ][monthNumber];
-        case Langs.EN:
-            return [
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-            ][monthNumber];
-        default:
-            return "";
-    }
+const getMonthName = (month: number, lang: Langs) => {
+  const months = {
+    [Langs.UZ]: ["Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"],
+    [Langs.RU]: ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
+    [Langs.EN]: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+  };
+  return months[lang][month] || "";
 };
 
-type TAttendanceTablePage = {
-    title: string;
-    tableHeading: string;
-    noStudents: string;
-    noStudentsMatch: string;
-    searchPlaceholder: string;
-    backButton: string;
-    downloadButton: string;
-    prevMonthButton: string;
-    nextMonthButton: string;
-    currentMonthButton: string;
-    errorFetchingData: string;
-    errorUpdatingData: string;
-};
+export default function TCHAttendanceTablePage() {
+  const { lang } = useContext(GlobalContext);
+  const t = contentsMap[lang];
 
-const contentsMap = new Map<Langs, TAttendanceTablePage>([
-    [Langs.UZ, {
-        title: "Davomati",
-        tableHeading: "O'quvchilar",
-        noStudents: "O'quvchilar mavjud emas",
-        noStudentsMatch: "Qidiruv shartlariga mos keladigan o'quvchilar mavjud emas",
-        searchPlaceholder: "Ism bo'yicha qidiruv",
-        backButton: "Ortga",
-        downloadButton: "Yuklab olish",
-        prevMonthButton: "Oldingi oy",
-        nextMonthButton: "Keyingi oy",
-        currentMonthButton: "Joriy oy",
-        errorFetchingData: "Ma'lumotlarni olishda xatolik yuz berdi",
-        errorUpdatingData: "Davomatni yangilashda xatolik yuz berdi",
-    }],
-    [Langs.RU, {
-        title: "Посещаемость",
-        tableHeading: "Студенты",
-        noStudents: "Студенты отсутствуют",
-        noStudentsMatch: "Нет студентов, соответствующих критериям поиска",
-        searchPlaceholder: "Поиск по имени",
-        backButton: "Назад",
-        downloadButton: "Скачать",
-        prevMonthButton: "Предыдущий месяц",
-        nextMonthButton: "Следующий месяц",
-        currentMonthButton: "Текущий месяц",
-        errorFetchingData: "Ошибка при получении данных",
-        errorUpdatingData: "Ошибка при обновлении посещаемости",
-    }],
-    [Langs.EN, {
-        title: "Attendance",
-        tableHeading: "Students",
-        noStudents: "No students available",
-        noStudentsMatch: "No students match the search term",
-        searchPlaceholder: "Search by name",
-        backButton: "Back",
-        downloadButton: "Download",
-        prevMonthButton: "Previous month",
-        nextMonthButton: "Next month",
-        currentMonthButton: "Current month",
-        errorFetchingData: "Failed to fetch attendance data",
-        errorUpdatingData: "Failed to update attendance",
-    }],
-]);
+  const { id } = useParams<{ id: string }>();
+  const [loading, setLoading] = useState(true);
+  const [currentMonth, setCurrentMonth] = useState(dayjs());
+  const [groupName, setGroupName] = useState("");
+  const [students, setStudents] = useState<any[]>([]);
+  const [attendanceData, setAttendanceData] = useState<any[]>([]);
+  const [lessons, setLessons] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
 
-type AttendanceRecord = {
-    id: number;
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [attRes, stuRes, groupRes, lessonRes] = await Promise.all([
+          client.get(`education/attendance/?group=${id}`),
+          client.get(`students/by_group/list/${id}`),
+          client.get(`education/group/detail/${id}`),
+          client.get(`education/lessons/?group=${id}&month=${currentMonth.format("YYYY-MM")}`),
+        ]);
+
+        setAttendanceData(attRes.data);
+        setStudents(stuRes.data.filter((s: any) => s.status === "active"));
+        setGroupName(groupRes.data.name);
+        setLessons(lessonRes.data);
+      } catch (err) {
+        console.error("Fetch error:", err);
+        toast.error(t.errorFetchingData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, currentMonth]);
+
+  const handleAttendanceSave = async (data: {
+    id?: number;
     student: number;
-    created_at: string;
-    status: string;
-};
-
-type Student = {
-    id: number;
-    first_name: string;
-};
-
-function TCHAttendanceTablePage() {
-    const {lang} = useContext(GlobalContext);
-    const contents = contentsMap.get(lang) as TAttendanceTablePage;
-
-    useEffect(() => {
-        dayjs.locale(localeMap[lang]);
-    }, [lang]);
-
-    const {id} = useParams<{ id: string }>();
-    const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([]);
-    const [students, setStudents] = useState<Student[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [currentMonth, setCurrentMonth] = useState(dayjs());
-    const [groupName, setGroupName] = useState("");
-    const [searchTerm, setSearchTerm] = useState("");
-    const [showSearch, setShowSearch] = useState(false);
-
-    useEffect(() => {
-        (async () => {
-            if (!id) {
-                toast.error(contents.errorFetchingData);
-                return;
-            }
-            setLoading(true);
-            try {
-                const response = await client.get(`education/attendance/?group=${id}`);
-                if (!(response.data instanceof Array)) return;
-                setAttendanceData(response.data.map(el => ({
-                    id: el.id,
-                    student: el.student.id,
-                    created_at: el.date,
-                    status: el.status ? "+" : '-',
-                })));
-                const studentsResponse = await client.get(`students/by_group/list/${id}`);
-                if (!(studentsResponse.data instanceof Array)) return;
-                const activeStudents = studentsResponse.data.filter(el => el.status === 'active');
-                setStudents(activeStudents.map(el => ({
-                    id: el.id,
-                    first_name: el.user.first_name,
-                })));
-                const groupName = (await client.get(`education/group/detail/${id}`)).data.name as string;
-                setGroupName(groupName);
-                
-            } catch (error) {
-                toast.error(contents.errorFetchingData);
-                console.error("Error fetching attendance data:", error);
-            } finally {
-                setLoading(false);
-            }
-        })()
-    }, [id, currentMonth]);
-
-    const handlePreviousMonth = () => {
-        setCurrentMonth(currentMonth.subtract(1, "month"));
-    };
-
-    const handleNextMonth = () => {
-        setCurrentMonth(currentMonth.add(1, "month"));
-    };
-
-    const handleCurrentMonth = () => {
-        setCurrentMonth(dayjs());
-    };
-
-    const toggleAttendanceStatus = async (
-        studentId: number,
-        date: dayjs.Dayjs
-    ) => {
-        try {
-            const record = attendanceData.find(
-                (record) =>
-                    dayjs(record.created_at).isSame(date, "day") &&
-                    record.student === studentId
-            );
-
-            if (record) {
-                const newStatus = record.status !== "+";
-                await client.patch(`education/attendance/${record.id}/`, {
-                    status: newStatus,
-                });
-                setAttendanceData((prevData) =>
-                    prevData.map((r) =>
-                        r.id === record.id ? {...r, status: newStatus ? "+" : '-'} : r
-                    )
-                );
-                toast.success("Attendance updated successfully");
-
-            } else {
-                // const newRecord = {
-                //   student: studentId,
-                //   created_at: date.format(),
-                //   status: "+",
-                // };
-                // const response = await client.post("education/attendance/", newRecord);
-                // setAttendanceData((prevData) => [
-                //   ...prevData,
-                //   { ...newRecord, id: response.data.id },
-                // ]);
-            }
-        } catch (error) {
-            toast.error(contents.errorUpdatingData);
-            console.error("Error updating attendance:", error);
-        }
-    };
-
-    const downloadXLS = () => {
-        const wsData = [];
-        const daysInMonth = currentMonth.daysInMonth();
-        const dates = Array.from({length: daysInMonth}, (_, i) =>
-            currentMonth.date(i + 1).format("DD")
-        );
-
-        const header = ["Students", ...dates];
-        wsData.push(header);
-
-        const filteredStudents = students.filter((student) =>
-            student.first_name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-
-        filteredStudents.forEach((student) => {
-            const row = [student.first_name];
-            dates.forEach((date) => {
-                const record = attendanceData.find(
-                    (record) =>
-                        dayjs(record.created_at).format("DD") === date &&
-                        record.student === student.id
-                );
-                const status = record ? record.status : "N/A";
-                row.push(status);
-            });
-            wsData.push(row);
+    lesson: number;
+    date: string;
+    status: boolean;
+    score: number | null;
+  }) => {
+    try {
+      let response;
+      if (data.id) {
+        response = await client.patch(`education/attendance/${data.id}/`, {
+          status: data.status,
+          score: data.score,
         });
+      } else {
+        response = await client.post("education/attendance/", {
+          student: data.student,
+          lesson: data.lesson,
+          date: data.date,
+          status: data.status,
+          score: data.score,
+        });
+      }
 
-        const ws = XLSX.utils.aoa_to_sheet(wsData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, `${getMonthName(currentMonth.month(), lang)} ${currentMonth.year()}`);
-
-        const wscols = [{wch: 20}, ...Array(daysInMonth).fill({wch: 5})];
-        ws["!cols"] = wscols;
-
-        const wsrows = wsData.map(() => ({hpx: 25}));
-        ws["!rows"] = wsrows;
-
-        XLSX.writeFile(wb, `${groupName}_${currentMonth.format("MMMM_YYYY")}.xlsx`);
-    };
-
-    const renderAttendanceTable = () => {
-        if (!students.length) {
-            return <div>{contents.noStudents}</div>;
+      setAttendanceData((prev) => {
+        if (data.id) {
+          return prev.map((r) => (r.id === data.id ? { ...r, ...response.data } : r));
+        } else {
+          return [...prev, response.data];
         }
+      });
 
-        const daysInMonth = currentMonth.daysInMonth();
-        const dates = Array.from({length: daysInMonth}, (_, i) =>
-            currentMonth.date(i + 1)
-        );
-        const filteredStudents = students.filter((student) =>
-            student.first_name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+      toast.success(lang === Langs.UZ ? "Saqlandi!" : lang === Langs.RU ? "Сохранено!" : "Saved!");
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.non_field_errors?.[0] ||
+        err.response?.data?.detail ||
+        t.errorUpdatingData;
+      toast.error(msg);
+    }
+  };
 
-        if (filteredStudents.length === 0) {
-            return <div>{contents.noStudentsMatch}</div>;
-        }
-        // mx-auto border-x-slate-600 border-collapse 2xl:h-[88%]  h-[70%] overflow-y-auto w-11/12
-        return (
-            <div className="overflow-x-auto  max-w-screen-2xl bg-white mt-5">
-            <table className="dark:bg-gray-800 container w-full">
-                <thead>
-                    <tr>
-                        <th className="sticky left-0 z-10 py-2 px-4 border-b border-gray-300 dark:text-white dark:border-gray-700 bg-white dark:bg-gray-800">
-                            {contents.tableHeading}
-                        </th>
-                        {dates.map((date) => (
-                            <th
-                                key={date.format("YYYY-MM-DD")}
-                                className="py-2 px-4 border-x border-b border-gray-300 dark:text-white dark:border-gray-700"
-                            >
-                                {date.format("DD")}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {filteredStudents.map((student) => (
-                        <tr key={student.id}>
-                            <td className="sticky left-0 z-10 py-2 px-4 border-b border-e border-gray-300 dark:text-white dark:border-gray-700 bg-white dark:bg-gray-800">
-                                {student.first_name}
-                            </td>
-                            {dates.map((date) => {
-                                const record = attendanceData.find(
-                                    (record) =>
-                                        dayjs(record.created_at).isSame(date, "day") &&
-                                        record.student === student.id
-                                );
-                                const status = record?.status;
-                                return (
-                                    <td
-                                        key={date.format("YYYY-MM-DD")}
-                                        className={`py-2 px-4 border-b border-x text-center border-gray-300 dark:border-gray-700 cursor-pointer ${
-                                            record
-                                                ? status === "+"
-                                                    ? "text-green-500 text-2xl"
-                                                    : "text-red-500 text-2xl"
-                                                : "dark:text-white"
-                                        }`}
-                                        onClick={() => toggleAttendanceStatus(student.id, date)}
-                                    >
-                                        <h1>{record ? status : "N/A"}</h1>
-                                    </td>
-                                );
-                            })}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-        
-        );
-    };
-
-    return loading ? (
-        <Loading/>
-    ) : (
-        <div className="w-full mt-12 md:mt-0">
-            <div className="flex items-center justify-between px-4">
-                <button
-                    onClick={() => window.history.back()}
-                    className="w-12 h-12 mx-3 my-3 bg-gray-200 hover:bg-gray-300 rounded"
-                >
-                    <i className="fa-solid fa-arrow-left text-black"></i>
-                </button>
-                {groupName && (
-                    <h1 className="2xl:text-4xl text-3xl font-bold dark:text-white">
-                        {groupName} {contents.title}
-                    </h1>
-                )}
-                <div className="relative flex items-center">
-                    <input
-                        type="text"
-                        placeholder={contents.searchPlaceholder}
-                        className={`mt-1 p-2 border  hidden md:block border-gray-300 rounded transition-all duration-500 ${
-                            showSearch ? "w-48 opacity-100" : "w-0 opacity-0"
-                        }`}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{visibility: showSearch ? "visible" : "hidden"}}
-                    />
-                    <button
-                        className="bg-gray-200 mx-3  hidden md:block hover:bg-gray-300 rounded py-3 px-4"
-                        onClick={() => setShowSearch(!showSearch)}
-                    >
-                        <i className="fa fa-search"></i>
-                    </button>
-                    <button
-                        className=" text-white bg-green-400 rounded hover:bg-green-700  py-3 px-4"
-                        onClick={downloadXLS}
-                    >
-                        <i className="fa fa-download"></i>
-                    </button>
-                </div>
-            </div>
-
-
-
-            <div  className="flex justify-end mb-6 mt-5 items-center md:hidden">
-     <input
-                        type="text"
-                        placeholder={contents.searchPlaceholder}
-                        className={`mt-1 p-2 border  border-gray-300 rounded transition-all duration-500 ${
-                            showSearch ? "w-48 opacity-100" : "w-0 opacity-0"
-                        }`}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{visibility: showSearch ? "visible" : "hidden"}}
-                    />
-                    <button
-                        className="bg-gray-200 mx-3  hover:bg-gray-300 rounded py-3 px-4"
-                        onClick={() => setShowSearch(!showSearch)}
-                    >
-                        <i className="fa fa-search"></i>
-                    </button>
-     </div>
-
-
-
-            <div className="flex items-center justify-between max-w-sm mt-8 mx-auto">
-                <button
-                    onClick={handlePreviousMonth}
-                    className="w-12 h-12 mx-3 hover:bg-gray-300 rounded"
-                >
-                    <i className="fa-solid fa-arrow-left text-black dark:text-white"></i>
-                </button>
-                <div className="flex w-96 justify-center">
-                    <h2 className="text-2xl text-center font-semibold dark:text-white mx-2 p-2">
-                        {getMonthName(currentMonth.month(), lang)} {currentMonth.year()}
-                    </h2>
-                </div>
-                <button
-                    onClick={handleNextMonth}
-                    className="w-12 h-12 mx-3 hover:bg-gray-300 rounded"
-                >
-                    <i className="fa-solid fa-arrow-right text-black dark:text-white"></i>
-                </button>
-                <button
-                    onClick={handleCurrentMonth}
-                    className="py-3 px-4 mx-3 text-white bg-blue-400 rounded hover:bg-blue-700"
-                >
-                    <i className="fa fa-calendar"></i>
-                </button>
-            </div>
-            <div className="mx-auto  overflow-y-auto 2xl:h-[80%] h-[65%] attendance-table px-2">{renderAttendanceTable()}</div>
-        </div>
+  const downloadXLS = () => {
+    const daysInMonth = currentMonth.daysInMonth();
+    const dates = Array.from({ length: daysInMonth }, (_, i) =>
+      currentMonth.date(i + 1)
     );
-}
 
-export default TCHAttendanceTablePage;
+    const header = [
+      "№",
+      t.tableHeading,
+      ...dates.map((d) => d.format("DD")),
+      t.scoreLabel + " (Jami)",
+    ];
+
+    const rows: any[] = [];
+
+    const filteredStudents = students.filter((s) => {
+      const fullName = `${s.user.first_name} ${s.user.last_name || ""}`.toLowerCase();
+      return fullName.includes(searchTerm.toLowerCase());
+    });
+
+    filteredStudents.forEach((student, index) => {
+      let totalScore = 0;
+      let presentCount = 0;
+
+      const row = [
+        index + 1,
+        `${student.user.first_name} ${student.user.last_name || ""}`.trim(),
+      ];
+
+      dates.forEach((date) => {
+        // const dateStr = date.format("YYYY-MM-DD");
+        const record = attendanceData.find(
+          (r: any) =>
+            r.student === student.id && dayjs(r.date).isSame(date, "day")
+        );
+
+        if (record) {
+          if (record.status) {
+            row.push(`+ (${record.score ?? 0})`);
+            totalScore += record.score ?? 0;
+            presentCount++;
+          } else {
+            row.push(`− (0)`);
+          }
+        } else {
+          const hasLesson = lessons.some((l: any) =>
+            dayjs(l.date).isSame(date, "day")
+          );
+          row.push(hasLesson ? "−" : ""); 
+        }
+      });
+
+      row.push(totalScore > 0 ? totalScore : "-");
+      rows.push(row);
+    });
+
+    const summaryRow = [
+      "",
+      "Jami kelganlar",
+      ...dates.map((date) => {
+        // const dateStr = date.format("YYYY-MM-DD");
+        const present = attendanceData.filter((r: any) =>
+          dayjs(r.date).isSame(date, "day") && r.status
+        ).length;
+        return present > 0 ? present : "";
+      }),
+      "",
+    ];
+    rows.push(summaryRow);
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+
+    ws["!cols"] = [
+      { wch: 5 },
+      { wch: 25 },
+      ...Array(daysInMonth).fill({ wch: 10 }),
+      { wch: 12 },
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, "Davomat");
+
+    const monthName = getMonthName(currentMonth.month(), lang);
+    const fileName = `${groupName || "Guruh"}_Davomat_${monthName}_${currentMonth.year()}.xlsx`;
+
+    XLSX.writeFile(wb, fileName);
+    toast.success(lang === Langs.UZ ? "Yuklab olindi!" : "Файл скачан!");
+  };
+
+  if (loading) return <Loading />;
+
+  return (
+    <div className=" ">
+      <div className="w-full overflow-x-auto px-4">
+        <AttendanceHeader
+          groupName={groupName}
+          title={t.title}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          showSearch={showSearch}
+          setShowSearch={setShowSearch}
+          onDownload={downloadXLS}
+          searchPlaceholder={t.searchPlaceholder}
+        />
+
+        <AttendanceCalendarControls
+          currentMonth={currentMonth}
+          onPrev={() => setCurrentMonth((m) => m.subtract(1, "month"))}
+          onNext={() => setCurrentMonth((m) => m.add(1, "month"))}
+          onToday={() => setCurrentMonth(dayjs())}
+          monthName={getMonthName(currentMonth.month(), lang)}
+          year={currentMonth.year()}
+        />
+
+        <div className="mt-6">
+          <AttendanceTableBody
+            students={students}
+            attendanceData={attendanceData}
+            lessons={lessons}
+            currentMonth={currentMonth}
+            searchTerm={searchTerm}
+            onSave={handleAttendanceSave}
+            tableHeading={t.tableHeading}
+            noStudents={t.noStudents}
+            noStudentsMatch={t.noStudentsMatch}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
