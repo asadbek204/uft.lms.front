@@ -75,6 +75,8 @@ import StaffList from "./pages/StuffList/StuffList.tsx";
 import ManagerStudentsForm from "./ManagerRole/ManagerStudentsForm.tsx";
 import MJContractNewModule from "./ManagerRole/MJContracts/MJContractNewModule.tsx";
 import AttachContractModal from "./pages/StudentDetailPage/AttachContractModal.tsx";
+import TCHTopicsAttendancee from './TeacherRole/TCHTopicsPage/TCHTopicsSingle/TCHTopicsSingleDetail/TCHTopicsAttendance';
+
 
 type TNewsComponentContent = {
     title: string;
@@ -193,34 +195,37 @@ const student: ReactNode = (
     </Routes>);
 
 const teacher: ReactNode = (
-    <Routes>
-        <Route path="/" element={<TCHHomePage/>}/>
-        <Route path="/settings" element={<SettingsPage/>}/>
-        <Route path="/videos" element={<TCHVideos/>}/>
-        {/*<Route path="/videos/:id" element={<TCHVideosModulePage/>}/>*/}
-        <Route path="/videos/:id/:id" element={<TCHVideos/>}/>
-        <Route path="/topics" element={<TCHTopicsPage/>}/>
-        <Route path="/topics/:id" element={<TCHTopicsSingle/>}/>
-        <Route path="/topics/:groupId/:id" element={<TCHTopicsSingleDetail/>}/>
-        <Route path="/topics/attandance" element={<TCHTopicsAttendance/>}/>
-        <Route path="/attendance" element={<TCHAttandancePage/>}/>
-        <Route path="/attendance/:id" element={<TCHAttendanceDetailPage/>}/>
-        <Route path='/change-password' element={<ChangePasswordPage/>}/>
-        <Route path='/reset-password' element={<ResetPasswordPage/>}/>
-        <Route path='/news' element={<News/>}/>
-        <Route path='/news/:id' element={<NewsSingle/>}/>
-        <Route path='/library' element={<LibraryPage/>}/>
-        <Route path='/login' element={<Login/>}/>
-        <Route path='/forgot' element={<Forgot/>}/>
-        <Route path='/groups' element={<TCHGroupPage/>}/>
-        <Route path='/groups/:id' element={<TCHGroupList/>}/>
-        <Route path='/groups/:id/:id' element={<StudentDetailPageAll/>}/>
-        <Route path='/classschedule' element={<TCHShedule/>}/>
-        <Route path='/classschedule/:id' element={<TCHSheduleSingle/>}/>
-        {/* <Route path='/debts/:id' element={<DebtorsPageUsers/>}/> */}
-        {/* <Route path='/payments' element={<STPaymentsPage/>}/> */}
-        <Route path='*' element={<Page404/>}/>
-    </Routes>);
+  <Routes>
+    <Route path="/" element={<TCHHomePage />} />
+    <Route path="/settings" element={<SettingsPage />} />
+    <Route path="/videos" element={<TCHVideos />} />
+    {/*<Route path="/videos/:id" element={<TCHVideosModulePage/>}/>*/}
+    <Route path="/videos/:id/:id" element={<TCHVideos />} />
+    <Route path="/topics" element={<TCHTopicsPage />} />
+    <Route path="/topics/:id" element={<TCHTopicsSingle />} />
+    <Route path="/topics/:groupId/:id" element={<TCHTopicsSingleDetail />} />
+    <Route path="/topics/attandance" element={<TCHTopicsAttendance />} />
+    <Route path="/attendance" element={<TCHAttandancePage />} />
+    <Route path="/attendance/:id" element={<TCHAttendanceDetailPage />} />
+    <Route path="/change-password" element={<ChangePasswordPage />} />
+    <Route path="/reset-password" element={<ResetPasswordPage />} />
+    <Route path="/news" element={<News />} />
+    <Route path="/news/:id" element={<NewsSingle />} />
+    <Route path="/library" element={<LibraryPage />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/forgot" element={<Forgot />} />
+    <Route path="/groups" element={<TCHGroupPage />} />
+    <Route path="/groups/:id" element={<TCHGroupList />} />
+    <Route path="/groups/:id/:id" element={<StudentDetailPageAll />} />
+    <Route path="/classschedule" element={<TCHShedule />} />
+    <Route path="/classschedule/:id" element={<TCHSheduleSingle />} />
+    {/* <Route path='/debts/:id' element={<DebtorsPageUsers/>}/> */}
+    {/* <Route path='/payments' element={<STPaymentsPage/>}/> */}
+    <Route path="/topics-attandance/:id" element={<TCHTopicsAttendancee />} />
+
+    <Route path="*" element={<Page404 />} />
+  </Routes>
+);
 
 const support: ReactNode = (
     <Routes>

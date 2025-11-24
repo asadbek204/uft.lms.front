@@ -11,10 +11,8 @@ type Props = {
 };
 
 export default function AttendanceCalendarControls({
-  currentMonth,
   onPrev,
   onNext,
-  onToday,
   monthName,
   year,
 }: Props) {
@@ -38,13 +36,7 @@ export default function AttendanceCalendarControls({
         <i className="fa-solid fa-arrow-right"></i>
       </button>
 
-      <button
-        onClick={onToday}
-        className="px-5 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded flex items-center gap-2"
-      >
-        <i className="fa fa-calendar"></i>
-        <span className="hidden sm:inline">Joriy oy</span>
-      </button>
+  
     </div>
   );
 }

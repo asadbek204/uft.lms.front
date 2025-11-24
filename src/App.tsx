@@ -7,8 +7,6 @@ import RoutesMap from './Routes';
 import PagesMap from './maps.ts';
 import Login from './pages/Login/Login.tsx';
 import ForgotPassword from './pages/Forgot/Forgot.tsx';
-// import StudentsFormOrg from './StudentsFormOrg.tsx';
-import TCHTopicsAttendance from './TeacherRole/TCHTopicsPage/TCHTopicsSingle/TCHTopicsSingleDetail/TCHTopicsAttendance';
 import client from "./components/services/index.tsx";
 
 export type TGlobalContext = {
@@ -87,20 +85,19 @@ function App() {
     const isLoginPage = currentUrl.includes('/login');
     const isForgotPasswordPage = currentUrl.includes('/forgot');
     const isStudentFormPage = currentUrl.includes('/students-form/');
-    const isStudentAttendance = currentUrl.includes('/topics-attandance');
 
 
     if (token && (isLoginPage || isForgotPasswordPage)) {
         return <Navigate to="/"/>;
     }
 
-    if (!token && !isLoginPage && !isForgotPasswordPage && !isStudentFormPage && !isStudentAttendance) {
+    if (!token && !isLoginPage && !isForgotPasswordPage && !isStudentFormPage ) {
         return <Navigate to="/login"/>;
     }
 
     return (
         <GlobalContext.Provider value={{lang, role, page, setRole, userId, setUserId}}>
-            {!isLoginPage && !isForgotPasswordPage && !isStudentFormPage && !isStudentAttendance && (
+            {!isLoginPage && !isForgotPasswordPage && !isStudentFormPage  && (
                 <SideBar
                     pages={pages}
                     setPage={setPage}
@@ -114,7 +111,6 @@ function App() {
                 className={`${(currentUrl.split("/")[1] !== "change-password" ||
                     currentUrl.split("/")[1] !== "reset-password" &&
                     currentUrl.split("/")[1] !== "forgot" &&
-                    currentUrl.split("/")[1] !== "topics-attandance/:id" &&
                     currentUrl.split("/")[1] !== "login")
                     ? "bg-gradient-light dark:bg-gradient-dark"
                     : ""
@@ -123,7 +119,6 @@ function App() {
                     currentUrl.split("/")[1] !== "change-password" &&
                     currentUrl.split("/")[1] !== "reset-password" &&
                     currentUrl.split("/")[1] !== "forgot" &&
-                    currentUrl.split("/")[1] !== "topics-attandance/:id" &&
                     currentUrl.split("/")[1] !== "login"
                         ? {boxShadow: "5px 10px 25px rgba(0, 0, 0, 0.15)", padding: '2rem 0'}
                         : {}
@@ -135,7 +130,6 @@ function App() {
                         <Route path="/login" element={<Login/>}/>
                         <Route path="/forgot" element={<ForgotPassword/>}/>
                         {/* <Route path="/students-form/:id" element={<StudentsFormOrg/>}/> */}
-                        <Route path="/topics-attandance/:id" element={<TCHTopicsAttendance/>}/>
                         <Route path="/*" element={RoutesMap.get(role)}/>
                     </Routes>
                 </Suspense>

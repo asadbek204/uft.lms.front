@@ -1,4 +1,3 @@
-import React from "react";
 
 type Props = {
   groupName: string;
@@ -38,7 +37,6 @@ export default function AttendanceHeader({
         )}
 
         <div className="flex items-center gap-3">
-          {/* Desktop Search */}
           <div className="hidden md:flex items-center">
             <input
               type="text"
@@ -68,7 +66,6 @@ export default function AttendanceHeader({
         </div>
       </div>
 
-      {/* Mobile Search */}
       <div className="flex justify-end mb-4 mt-3 md:hidden px-4">
         <input
           type="text"

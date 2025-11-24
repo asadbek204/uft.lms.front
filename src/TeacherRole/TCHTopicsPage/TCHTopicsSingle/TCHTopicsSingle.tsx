@@ -22,7 +22,7 @@ const contentsMap = new Map<Langs, TTopicsComponentContent>([
     Langs.UZ,
     {
       title: "Darslar",
-      attandance: "Yo'qlama",
+      attandance: "Bugungi dars",
       text: "Siz tanlagan dars dasturini to'liq yuklab olishingiz mumkin",
       tableHeaders: {
         date: "Sanasi",
@@ -36,7 +36,7 @@ const contentsMap = new Map<Langs, TTopicsComponentContent>([
     Langs.RU,
     {
       title: "Уроки",
-      attandance: "Посещаемость",
+      attandance: "Сегодняшний урок",
       text: "Вы можете скачать полную программу по вашему выбору",
       tableHeaders: {
         date: "Дата",
@@ -50,7 +50,7 @@ const contentsMap = new Map<Langs, TTopicsComponentContent>([
     Langs.EN,
     {
       title: "Lessons",
-      attandance: "Attendance",
+      attandance: "Today's Lesson",
       text: "You can download the complete syllabus of your choice",
       tableHeaders: {
         date: "Date",

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import  { useContext, useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
@@ -11,7 +11,6 @@ import AttendanceHeader from "./TCHAttendanceHeader";
 import AttendanceCalendarControls from "./TCHAttendanceCalendarControls";
 import AttendanceTableBody from "./TCHAttendanceTableBody";
 
-// To'liq tarjimalar
 const contentsMap = {
   [Langs.UZ]: {
     title: "Davomati",
@@ -25,7 +24,8 @@ const contentsMap = {
     present: "Keldi",
     absent: "Kelmadi",
     scoreLabel: "Baho",
-    noLesson: "Dars yo'q",
+    totalPresent: "Jami kelganlar",
+    totalScore: "Jami baho",
   },
   [Langs.RU]: {
     title: "Посещаемость",
@@ -39,7 +39,8 @@ const contentsMap = {
     present: "Присутствовал",
     absent: "Отсутствовал",
     scoreLabel: "Оценка",
-    noLesson: "Нет урока",
+    totalPresent: "Всего присутствовали",
+    totalScore: "Общая оценка",
   },
   [Langs.EN]: {
     title: "Attendance",
@@ -53,7 +54,8 @@ const contentsMap = {
     present: "Present",
     absent: "Absent",
     scoreLabel: "Score",
-    noLesson: "No lesson",
+    totalPresent: "Total Present",
+    totalScore: "Total Score",
   },
 };
 
@@ -93,12 +95,15 @@ export default function TCHAttendanceTablePage() {
           client.get(`education/lessons/?group=${id}&month=${currentMonth.format("YYYY-MM")}`),
         ]);
 
+        console.log("📥 Attendance:", attRes.data);
+        console.log("📥 Lessons:", lessonRes.data);
+
         setAttendanceData(attRes.data);
         setStudents(stuRes.data.filter((s: any) => s.status === "active"));
         setGroupName(groupRes.data.name);
         setLessons(lessonRes.data);
       } catch (err) {
-        console.error("Fetch error:", err);
+        console.error("❌ Fetch error:", err);
         toast.error(t.errorFetchingData);
       } finally {
         setLoading(false);
@@ -106,7 +111,7 @@ export default function TCHAttendanceTablePage() {
     };
 
     fetchData();
-  }, [id, currentMonth]);
+  }, [id, currentMonth, t.errorFetchingData]);
 
   const handleAttendanceSave = async (data: {
     id?: number;
@@ -118,6 +123,7 @@ export default function TCHAttendanceTablePage() {
   }) => {
     try {
       let response;
+
       if (data.id) {
         response = await client.patch(`education/attendance/${data.id}/`, {
           status: data.status,
@@ -143,6 +149,7 @@ export default function TCHAttendanceTablePage() {
 
       toast.success(lang === Langs.UZ ? "Saqlandi!" : lang === Langs.RU ? "Сохранено!" : "Saved!");
     } catch (err: any) {
+      console.error("❌ Save error:", err);
       const msg =
         err.response?.data?.non_field_errors?.[0] ||
         err.response?.data?.detail ||
@@ -151,71 +158,78 @@ export default function TCHAttendanceTablePage() {
     }
   };
 
+  const filteredStudents = useMemo(() => {
+    return students.filter((s) => {
+      const fullName = `${s.user.first_name} ${s.user.last_name || ""}`.toLowerCase();
+      return fullName.includes(searchTerm.toLowerCase());
+    });
+  }, [students, searchTerm]);
+
+  const lessonDates = useMemo(() => {
+    return lessons
+      .map((l) => dayjs(l.date))
+      .sort((a, b) => a.unix() - b.unix());
+  }, [lessons]);
+
   const downloadXLS = () => {
-    const daysInMonth = currentMonth.daysInMonth();
-    const dates = Array.from({ length: daysInMonth }, (_, i) =>
-      currentMonth.date(i + 1)
-    );
+    if (lessonDates.length === 0) {
+      toast.warning("Bu oyda darslar mavjud emas!");
+      return;
+    }
 
     const header = [
       "№",
       t.tableHeading,
-      ...dates.map((d) => d.format("DD")),
-      t.scoreLabel + " (Jami)",
+      ...lessonDates.map((d) => d.format("DD.MM")),
+      t.totalScore,
     ];
 
     const rows: any[] = [];
 
-    const filteredStudents = students.filter((s) => {
-      const fullName = `${s.user.first_name} ${s.user.last_name || ""}`.toLowerCase();
-      return fullName.includes(searchTerm.toLowerCase());
-    });
-
     filteredStudents.forEach((student, index) => {
       let totalScore = 0;
-      let presentCount = 0;
 
       const row = [
         index + 1,
         `${student.user.first_name} ${student.user.last_name || ""}`.trim(),
       ];
 
-      dates.forEach((date) => {
-        // const dateStr = date.format("YYYY-MM-DD");
-        const record = attendanceData.find(
-          (r: any) =>
-            r.student === student.id && dayjs(r.date).isSame(date, "day")
-        );
+      lessonDates.forEach((date) => {
+        const lesson = lessons.find((l) => dayjs(l.date).isSame(date, "day"));
+        
+        const record = attendanceData.find((r: any) => {
+          const studentId = typeof r.student === "object" ? r.student.id : r.student;
+          const lessonId = typeof r.lesson === "object" ? r.lesson.id : r.lesson;
+          return studentId === student.id && lessonId === lesson?.id;
+        });
 
         if (record) {
           if (record.status) {
-            row.push(`+ (${record.score ?? 0})`);
-            totalScore += record.score ?? 0;
-            presentCount++;
+            const score = record.score ?? 0;
+            row.push(`+ (${score})`);
+            totalScore += score;
           } else {
-            row.push(`− (0)`);
+            row.push("− (0)");
           }
         } else {
-          const hasLesson = lessons.some((l: any) =>
-            dayjs(l.date).isSame(date, "day")
-          );
-          row.push(hasLesson ? "−" : ""); 
+          row.push("−");
         }
       });
 
-      row.push(totalScore > 0 ? totalScore : "-");
+      row.push(totalScore > 0 ? totalScore : 0);
       rows.push(row);
     });
 
     const summaryRow = [
       "",
-      "Jami kelganlar",
-      ...dates.map((date) => {
-        // const dateStr = date.format("YYYY-MM-DD");
-        const present = attendanceData.filter((r: any) =>
-          dayjs(r.date).isSame(date, "day") && r.status
-        ).length;
-        return present > 0 ? present : "";
+      t.totalPresent,
+      ...lessonDates.map((date) => {
+        const lesson = lessons.find((l) => dayjs(l.date).isSame(date, "day"));
+        const present = attendanceData.filter((r: any) => {
+          const lessonId = typeof r.lesson === "object" ? r.lesson.id : r.lesson;
+          return lessonId === lesson?.id && r.status;
+        }).length;
+        return present > 0 ? present : 0;
       }),
       "",
     ];
@@ -227,7 +241,7 @@ export default function TCHAttendanceTablePage() {
     ws["!cols"] = [
       { wch: 5 },
       { wch: 25 },
-      ...Array(daysInMonth).fill({ wch: 10 }),
+      ...Array(lessonDates.length).fill({ wch: 10 }),
       { wch: 12 },
     ];
 
@@ -243,8 +257,8 @@ export default function TCHAttendanceTablePage() {
   if (loading) return <Loading />;
 
   return (
-    <div className=" ">
-      <div className="w-full overflow-x-auto px-4">
+    <div className=" w-full mt-12 md:mt-0">
+      <div className=" px-4">
         <AttendanceHeader
           groupName={groupName}
           title={t.title}
@@ -276,6 +290,7 @@ export default function TCHAttendanceTablePage() {
             tableHeading={t.tableHeading}
             noStudents={t.noStudents}
             noStudentsMatch={t.noStudentsMatch}
+            lang={lang === Langs.UZ ? "uz" : lang === Langs.RU ? "ru" : "en"}
           />
         </div>
       </div>

@@ -1,6 +1,39 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
+
+const t = {
+  uz: {
+    noLesson: "Bu kunga dars mavjud emas!",
+    attendanceStatus: "Davomat holati",
+    present: "Keldi (+)",
+    absent: "Kelmadi (−)",
+    scoreLabel: "Baho",
+    absentScore: "Kelmagan — baho",
+    cancel: "Bekor qilish",
+    save: "Saqlash",
+  },
+  ru: {
+    noLesson: "На этот день нет урока!",
+    attendanceStatus: "Статус посещаемости",
+    present: "Присутствовал (+)",
+    absent: "Отсутствовал (−)",
+    scoreLabel: "Оценка",
+    absentScore: "Отсутствовал — оценка",
+    cancel: "Отмена",
+    save: "Сохранить",
+  },
+  en: {
+    noLesson: "No lesson on this day!",
+    attendanceStatus: "Attendance Status",
+    present: "Present (+)",
+    absent: "Absent (−)",
+    scoreLabel: "Score",
+    absentScore: "Absent — score",
+    cancel: "Cancel",
+    save: "Save",
+  },
+};
 
 type AttendanceRecord = {
   id: number;
@@ -38,6 +71,7 @@ type Props = {
   tableHeading: string;
   noStudents: string;
   noStudentsMatch: string;
+  lang?: "uz" | "ru" | "en"; 
 };
 
 export default function AttendanceTableBody({
@@ -50,6 +84,7 @@ export default function AttendanceTableBody({
   tableHeading,
   noStudents,
   noStudentsMatch,
+  lang = "uz",
 }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -71,17 +106,13 @@ export default function AttendanceTableBody({
     const lesson = lessons.find((l) => dayjs(l.date).format("YYYY-MM-DD") === dateStr);
 
     if (!lesson) {
-      toast.error("Bu kunga dars mavjud emas!");
+      toast.error(t[lang].noLesson);
       return;
     }
 
     const record = attendanceData.find(
-      (r) =>
-        r.student.id === student.id &&
-        r.lesson.id === lesson.id
+      (r) => r.student.id === student.id && r.lesson.id === lesson.id
     );
-
-    console.log("🔍 Found record:", record);
 
     setSelectedStudent(student);
     setSelectedDate(date);
@@ -96,14 +127,9 @@ export default function AttendanceTableBody({
 
     const dateStr = selectedDate.format("YYYY-MM-DD");
     const lesson = lessons.find((l) => dayjs(l.date).format("YYYY-MM-DD") === dateStr);
+    if (!lesson) return;
 
-    if (!lesson) {
-      toast.error("Dars topilmadi!");
-      return;
-    }
-
-    const finalScore = status ? Number(scoreInput) || 0 : 0;
-
+    const finalScore = status ? (Number(scoreInput) || 0) : 0;
 
     await onSave({
       id: currentRecordId,
@@ -124,36 +150,31 @@ export default function AttendanceTableBody({
 
   return (
     <>
-      <div className="overflow-x-auto  bg-white rounded-lg shadow-lg mt-6">
+      <div className="overflow-x-auto bg-white rounded-lg shadow-lg mt-6">
         <table className="w-full table-auto border-collapse">
           <thead className="bg-gradient-to-r from-blue-50 to-indigo-50">
             <tr>
-              <th className="sticky left-0 z-10 bg-white py-4 px-6 text-left font-bold text-gray-700">
+              <th className="sticky left-0 z-10 bg-white py-4 px-6 text-left font-bold text-gray-800">
                 {tableHeading}
               </th>
               {dates.map((date) => (
-                <th key={date.format("DD")} className="py-4 px-3 text-center font-medium text-gray-600">
+                <th key={date.format("DD")} className="py-4 px-3 text-center font-medium text-gray-700">
                   {date.format("DD")}
                 </th>
               ))}
             </tr>
           </thead>
-
           <tbody>
             {filteredStudents.map((student) => (
               <tr key={student.id} className="border-t hover:bg-gray-50 transition">
-                <td className="sticky left-0 z-10 bg-white py-4 px-6 font-medium">
-                  {student.user.first_name} {student.user.last_name}
+                <td className="sticky left-0 z-10 bg-white py-4 px-6 font-medium text-gray-800">
+                  {student.user.first_name} {student.user.last_name || ""}
                 </td>
-
                 {dates.map((date) => {
                   const dateStr = date.format("YYYY-MM-DD");
                   const lesson = lessons.find((l) => dayjs(l.date).format("YYYY-MM-DD") === dateStr);
-
                   const record = attendanceData.find(
-                    (r) =>
-                      r.student.id === student.id &&
-                      r.lesson.id === lesson?.id
+                    (r) => r.student.id === student.id && r.lesson.id === lesson?.id
                   );
 
                   return (
@@ -180,72 +201,88 @@ export default function AttendanceTableBody({
         </table>
       </div>
 
-      {/* Modal */}
       {modalOpen && selectedStudent && selectedDate && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
-            <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-              {selectedStudent.user.first_name} {selectedStudent.user.last_name} <br />
-              <span className="text-lg text-gray-600">{selectedDate.format("DD.MM.YYYY")}</span>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 animate-in fade-in zoom-in duration-200">
+            <h3 className="text-2xl font-bold text-center text-gray-800 mb-2">
+              {selectedStudent.user.first_name} {selectedStudent.user.last_name || ""}
             </h3>
+            <p className="text-center text-lg text-gray-600 mb-8">
+              {selectedDate.format("DD.MM.YYYY")}
+            </p>
 
             <div className="space-y-8">
               <div>
-                <label className="block text-lg font-semibold mb-4">Davomat holati</label>
-                <div className="flex justify-center gap-10">
-                  <label className="flex items-center gap-3 cursor-pointer">
+                <label className="block text-lg font-semibold mb-5 text-center">
+                  {t[lang].attendanceStatus}
+                </label>
+                <div className="flex justify-center gap-12">
+                  <label className="flex items-center gap-4 cursor-pointer">
                     <input
                       type="radio"
                       name="status"
                       checked={status}
                       onChange={() => setStatus(true)}
-                      className="w-6 h-6"
+                      className="w-7 h-7 text-green-600 focus:ring-green-500"
                     />
-                    <span className="text-2xl text-green-600">Keldi (+)</span>
+                    <span className="text-2xl font-medium text-green-600">
+                      {t[lang].present}
+                    </span>
                   </label>
 
-                  <label className="flex items-center gap-3 cursor-pointer">
+                  <label className="flex items-center gap-4 cursor-pointer">
                     <input
                       type="radio"
                       name="status"
                       checked={!status}
                       onChange={() => setStatus(false)}
-                      className="w-6 h-6"
+                      className="w-7 h-7 text-red-600 focus:ring-red-500"
                     />
-                    <span className="text-2xl text-red-600">Kelmadi (−)</span>
+                    <span className="text-2xl font-medium text-red-600">
+                      {t[lang].absent}
+                    </span>
                   </label>
                 </div>
               </div>
 
               {status && (
                 <div>
-                  <label className="block text-lg font-semibold mb-3">Baho (1-10)</label>
+                  <label className="block text-lg font-semibold mb-3 text-center">
+                    {t[lang].scoreLabel}
+                  </label>
                   <input
                     type="number"
                     min="1"
                     max="10"
                     value={scoreInput}
                     onChange={(e) => setScoreInput(e.target.value)}
-                    className="w-full px-5 py-4 border-2 rounded-xl text-2xl text-center"
+                    className="w-full px-6 py-5 border-2 border-gray-300 rounded-xl text-3xl text-center font-bold focus:border-blue-500 focus:outline-none transition"
+                    placeholder="5"
                   />
                 </div>
               )}
 
               {!status && (
-                <div className="text-center py-4">
-                  <p className="text-xl font-medium text-red-600">
-                    Kelmagan — baho <strong>0</strong>
+                <div className="text-center py-6  bg-red-50 rounded-xl">
+                  <p className="text-xl font-semibold text-red-600">
+                    {t[lang].absentScore} <strong>0</strong>
                   </p>
                 </div>
               )}
             </div>
 
             <div className="flex justify-end gap-4 mt-10">
-              <button onClick={() => setModalOpen(false)} className="px-8 py-3 bg-gray-300 rounded-xl">
-                Bekor qilish
+              <button
+                onClick={() => setModalOpen(false)}
+                className="px-8 py-3 bg-gray-300 hover:bg-gray-400 rounded-xl font-medium text-gray-700 transition"
+              >
+                {t[lang].cancel}
               </button>
-              <button onClick={handleSave} className="px-10 py-3 bg-blue-600 text-white rounded-xl">
-                Saqlash
+              <button
+                onClick={handleSave}
+                className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition shadow-lg"
+              >
+                {t[lang].save}
               </button>
             </div>
           </div>
