@@ -23,4 +23,4 @@ jobs:
           cd /var/www/demo.ba.lms.uft.uz/eco_front/
           git pull origin main
           cd ..
-          make down && docker rmi lmsuftacademy-frontend:latest && make up
+          make down && docker rmi -f lmsuftacademy-frontend:latest 2>/dev/null || true && make up
