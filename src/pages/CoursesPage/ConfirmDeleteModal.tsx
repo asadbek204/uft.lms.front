@@ -57,12 +57,12 @@ function ConfirmDeleteModal({ content, onDelete }: {content: number, onDelete: (
             await client.delete(`education/course/delete/${id}/`)
                 .then(() => {
                     toast.success(contents.toast1);
-                    onDelete(id); // Remove the course from the list
+                    onDelete(id); 
                 })
                 .catch(() => {
                     toast.error(contents.toast2);
                 });
-            setOpen(false); // Close modal after deletion
+            setOpen(false); 
         }
     };
 
@@ -75,7 +75,7 @@ function ConfirmDeleteModal({ content, onDelete }: {content: number, onDelete: (
         <>
             <button
   onClick={handleOpen}
-  className="m-4 bg-red-600 w-[30px] h-[30px] dark:text-gray-200 text-white rounded-md"
+  className=" bg-red-600 w-[30px] h-[30px] dark:text-gray-200 text-white rounded-md"
 >
   <i className="fa-solid fa-trash-can" />
 </button>

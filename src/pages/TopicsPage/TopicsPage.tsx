@@ -79,7 +79,7 @@ type TSyllabus = {
   file: string | null;
   description: string;
   path: string;
-  main: unknown; // Replace any with unknown or a more specific type if known
+  main: unknown; 
 };
 
 type TCourses = {

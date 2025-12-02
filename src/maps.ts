@@ -139,7 +139,7 @@ const PagesMap = new Map<Roles, Pages[]>([
         Pages.Groups,
         Pages.Debts,
         Pages.Videos,
-        Pages.Topics,
+        // Pages.Topics,
         Pages.Attendance,
         Pages.StaffList,
         Pages.Library,
