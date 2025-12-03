@@ -76,7 +76,7 @@ import ManagerStudentsForm from "./ManagerRole/ManagerStudentsForm.tsx";
 import MJContractNewModule from "./ManagerRole/MJContracts/MJContractNewModule.tsx";
 import AttachContractModal from "./pages/StudentDetailPage/AttachContractModal.tsx";
 import TCHTopicsAttendancee from './TeacherRole/TCHTopicsPage/TCHTopicsSingle/TCHTopicsSingleDetail/TCHTopicsAttendance';
-
+import STAttendanceRequest from "./StudentRole/AttendancePage/AttendanceList/STAttendanceRequest.tsx";
 
 type TNewsComponentContent = {
     title: string;
@@ -191,6 +191,7 @@ const student: ReactNode = (
         <Route path='/shop/:id' element={<ShopItemsPage/>}/>
         <Route path='/shop/buy/:id' element={<ShopDetail/>}/>
         <Route path='/shop/orders/list/' element={<OrderList/>}/>
+        <Route path='/topics-attandance/:id' element={<STAttendanceRequest/>}/>
         <Route path='*' element={<Page404/>}/>
     </Routes>);
 
