@@ -30,7 +30,7 @@ import {useContext} from 'react';
 import {Link, Route, Routes} from 'react-router-dom';
 import HomePage from "./pages/HomePage/HomePage.tsx";
 import LibraryPage from "./pages/LibraryPage/LibraryPage.tsx";
-import MJHomePage from './ManagerRole/MJHomePage.tsx';
+// import MJHomePage from './ManagerRole/MJHomePage.tsx';
 import MJContacts from './ManagerRole/MJContracts/MJContracts.tsx'
 import ShopPage from "./pages/ShopPage/ShopPage.tsx";
 // import MJContactsDetail from './ManagerRole/MJContracts/MJContractsDetail/MJContactsDetail.tsx';
@@ -38,7 +38,7 @@ import ShopItemsPage from "./pages/ShopPage/ShopItems/ShopItemsPage.tsx";
 
 import TCHTopicsPage from './TeacherRole/TCHTopicsPage/TChTopicsPage.tsx';
 import TCHVideos from './TeacherRole/TCHVideosPage/TCHVideosModule/TCHVideos/TCHVideos.tsx';
-import TCHHomePage from './TeacherRole/TCHHomePage.tsx';
+// import TCHHomePage from './TeacherRole/TCHHomePage.tsx';
 import TCHGroupPage from './TeacherRole/TCHGroupPage/TCHGroupPage.tsx';
 import TCHGroupList from './TeacherRole/TCHGroupPage/TCHGroupList/TCHGroupList.tsx';
 // import TCHGroupInform from './TeacherRole/TCHGroupPage/TCHGroupList/TCHGroupInform/TCHGroupInform.tsx';
@@ -49,7 +49,7 @@ import TCHTopicsSingle from "./TeacherRole/TCHTopicsPage/TCHTopicsSingle/TCHTopi
 import TCHTopicsSingleDetail from './TeacherRole/TCHTopicsPage/TCHTopicsSingle/TCHTopicsSingleDetail/TCHTopicsSingleDetail.tsx'
 import TCHSheduleSingle from "./TeacherRole/TCHShedulePage/TCHSchedule/TCHSchedule.tsx"
 
-import STHomePage from "./StudentRole/STHomePage.tsx";
+// import STHomePage from "./StudentRole/STHomePage.tsx";
 import STPaymentsPage from './StudentRole/PaymentsPage/STPaymentsPage'
 import STAttendancePages from './StudentRole/AttendancePage/STAttendancePage.tsx'
 import STAttendanceList from './StudentRole/AttendancePage/AttendanceList/STAttendenceList.tsx'
@@ -58,7 +58,7 @@ import STTopics from './StudentRole/TopicsPage/TopicsModulePage/TopicsModulePage
 import STTopicsItem from './StudentRole/TopicsPage/TopicsModulePage/TopicsModuleVideos/TopicsModuleItems.tsx'
 import STToicsDetails from './StudentRole/TopicsPage/TopicsModulePage/TopicsModuleVideos/TopicDetailPage/TopicDetailPage.tsx'
 
-import ACHomePage from './AccountantRole/ACHomePage.tsx';
+// import ACHomePage from './AccountantRole/ACHomePage.tsx';
 import ACTeachers from './AccountantRole/ACTeachers/ACTeachers.tsx';
 import ACDebts from './AccountantRole/ACDebts/ACDebts.tsx'
 import STTopicGroups from "./StudentRole/TopicsPage/STTopicGroups.tsx";
@@ -166,7 +166,7 @@ const admin: ReactNode = (
 
 const student: ReactNode = (
     <Routes>
-        <Route path="/" element={<STHomePage/>}/>
+        <Route path="/" element={<HomePage/>}/>
         <Route path="/settings" element={<SettingsPage/>}/>
         <Route path="/videos" element={<STVideoGroups/>}/>
         <Route path="/videos/:id" element={<StVIdeoModuletems/>}/>
@@ -197,7 +197,7 @@ const student: ReactNode = (
 
 const teacher: ReactNode = (
   <Routes>
-    <Route path="/" element={<TCHHomePage />} />
+    <Route path="/" element={<HomePage />} />
     <Route path="/settings" element={<SettingsPage />} />
     <Route path="/videos" element={<TCHVideos />} />
     {/*<Route path="/videos/:id" element={<TCHVideosModulePage/>}/>*/}
@@ -228,39 +228,39 @@ const teacher: ReactNode = (
   </Routes>
 );
 
-const support: ReactNode = (
-    <Routes>
-        <Route path="/" element={<TCHHomePage/>}/>
-        <Route path="/settings" element={<SettingsPage/>}/>
-        <Route path="/videos" element={<TCHVideos/>}/>
-        {/*<Route path="/videos/:id" element={<TCHVideosModulePage/>}/>*/}
-        <Route path="/videos/:id/:id" element={<TCHVideos/>}/>
-        <Route path="/topics" element={<TCHTopicsPage/>}/>
-        <Route path="/topics/:id" element={<TCHTopicsSingle/>}/>
-        <Route path="/topics/:groupId/:id" element={<TCHTopicsSingleDetail/>}/>
-        <Route path="/topics/attandance" element={<TCHTopicsAttendance/>}/>
-        <Route path="/attendance" element={<TCHAttandancePage/>}/>
-        <Route path="/attendance/:id" element={<TCHAttendanceDetailPage/>}/>
-        <Route path='/change-password' element={<ChangePasswordPage/>}/>
-        <Route path='/reset-password' element={<ResetPasswordPage/>}/>
-        <Route path='/news' element={<News/>}/>
-        <Route path='/news/:id' element={<NewsSingle/>}/>
-        <Route path='/library' element={<LibraryPage/>}/>
-        <Route path='/login' element={<Login/>}/>
-        <Route path='/forgot' element={<Forgot/>}/>
-        <Route path='/groups' element={<TCHGroupPage/>}/>
-        <Route path='/groups/:id' element={<TCHGroupList/>}/>
-        <Route path='/groups/:id/:id' element={<StudentDetailPageAll/>}/>
-        <Route path='/classschedule' element={<TCHShedule/>}/>
-        <Route path='/classschedule/:id' element={<TCHSheduleSingle/>}/>
-        {/* <Route path='/debts/:id' element={<DebtorsPageUsers/>}/> */}
-        {/* <Route path='/payments' element={<STPaymentsPage/>}/> */}
-        <Route path='*' element={<Page404/>}/>
-    </Routes>);
+// const support: ReactNode = (
+//     <Routes>
+//         <Route path="/" element={<TCHHomePage/>}/>
+//         <Route path="/settings" element={<SettingsPage/>}/>
+//         <Route path="/videos" element={<TCHVideos/>}/>
+//         {/*<Route path="/videos/:id" element={<TCHVideosModulePage/>}/>*/}
+//         <Route path="/videos/:id/:id" element={<TCHVideos/>}/>
+//         <Route path="/topics" element={<TCHTopicsPage/>}/>
+//         <Route path="/topics/:id" element={<TCHTopicsSingle/>}/>
+//         <Route path="/topics/:groupId/:id" element={<TCHTopicsSingleDetail/>}/>
+//         <Route path="/topics/attandance" element={<TCHTopicsAttendance/>}/>
+//         <Route path="/attendance" element={<TCHAttandancePage/>}/>
+//         <Route path="/attendance/:id" element={<TCHAttendanceDetailPage/>}/>
+//         <Route path='/change-password' element={<ChangePasswordPage/>}/>
+//         <Route path='/reset-password' element={<ResetPasswordPage/>}/>
+//         <Route path='/news' element={<News/>}/>
+//         <Route path='/news/:id' element={<NewsSingle/>}/>
+//         <Route path='/library' element={<LibraryPage/>}/>
+//         <Route path='/login' element={<Login/>}/>
+//         <Route path='/forgot' element={<Forgot/>}/>
+//         <Route path='/groups' element={<TCHGroupPage/>}/>
+//         <Route path='/groups/:id' element={<TCHGroupList/>}/>
+//         <Route path='/groups/:id/:id' element={<StudentDetailPageAll/>}/>
+//         <Route path='/classschedule' element={<TCHShedule/>}/>
+//         <Route path='/classschedule/:id' element={<TCHSheduleSingle/>}/>
+//         {/* <Route path='/debts/:id' element={<DebtorsPageUsers/>}/> */}
+//         {/* <Route path='/payments' element={<STPaymentsPage/>}/> */}
+//         <Route path='*' element={<Page404/>}/>
+//     </Routes>);
 
 const accountant: ReactNode = (
     <Routes>
-        <Route path="/" element={<ACHomePage/>}/>
+        <Route path="/" element={<HomePage/>}/>
         <Route path='/teachers' element={<ACTeachers/>}/>
         <Route path='/debts' element={<ACDebts/>}/>
         <Route path='/debts/:id' element={<StudentDetailPageAll/>}/>
@@ -275,7 +275,7 @@ const accountant: ReactNode = (
 
 const manager: ReactNode = (
     <Routes>
-        <Route path="/" element={<MJHomePage/>}/>
+        <Route path="/" element={<HomePage/>}/>
         <Route path='/news' element={<News/>}/>
         <Route path='/news/:id' element={<NewsSingle/>}/>
         <Route path="/settings" element={<SettingsPage/>}/>
@@ -302,7 +302,7 @@ const RoutesMap = new Map<Roles, ReactNode>(
         [Roles.Manager, manager],
         [Roles.Student, student],
         [Roles.Teacher, teacher],
-        [Roles.Support, support],
+        // [Roles.Support, support],
         [Roles.Accountant, accountant],
     ]
 )

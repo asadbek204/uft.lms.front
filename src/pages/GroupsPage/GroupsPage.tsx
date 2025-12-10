@@ -16,6 +16,11 @@ type TGroupsComponentContent = {
   toast2: string;
   save: string;
   select: string;
+  days: string;
+  odd: string;
+  couple: string;
+  from: string;
+  to: string;
 };
 
 const contentsMap = new Map<Langs, TGroupsComponentContent>([
@@ -29,6 +34,11 @@ const contentsMap = new Map<Langs, TGroupsComponentContent>([
       select: "O'qituvchini tanlang",
       toast1: "O'zgarishlar muvaffaqiyatli saqlandi",
       toast2: "O'zgarishlarni saqlashda xatolik yuz berdi",
+      days: "Kunlarini tanlash",
+      odd: "Toq kunlar",
+      couple: "Juft kunlar",
+      from: "Boshlanish",
+      to: "Tugash",
     },
   ],
   [
@@ -41,6 +51,11 @@ const contentsMap = new Map<Langs, TGroupsComponentContent>([
       select: "Выберите учителя",
       toast1: "Изменения успешно сохранены",
       toast2: "Произошла ошибка при сохранении изменений",
+      days: "Выберите дни",
+      odd: "Нечетные дни",
+      couple: "Чётные дни",
+      from: "Начало",
+      to: "Конец",
     },
   ],
   [
@@ -53,14 +68,33 @@ const contentsMap = new Map<Langs, TGroupsComponentContent>([
       select: "Select Teacher",
       toast1: "Changes saved successfully",
       toast2: "An error occurred while saving changes",
+      days: "Choose the days",
+      odd: "Odd days",
+      couple: "Even days",
+      from: "Start",
+      to: "End",
     },
   ],
 ]);
 
-type TGroups = {
-  name: string;
+type TSchedule = {
   id: number;
-  teacher: string;
+  day: string;
+  starts_at: string;
+  ends_at: string;
+};
+
+type TGroups = {
+  id: number;
+  name: string;
+  teacher: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    sure_name: string;
+  };
+  schedule: TSchedule[];
+  // boshqa fieldlar...
 };
 
 type TTeacher = {
@@ -71,6 +105,8 @@ type TTeacher = {
     sure_name: string;
   };
 };
+const daysOfWeekOdd = ["MO", "WE", "FR"];
+const daysOfWeekEven = ["TU", "TH", "SA"];
 
 function GroupsPage() {
   const { lang } = useContext(GlobalContext);
@@ -90,6 +126,10 @@ function GroupsPage() {
   );
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+
+  const [isOddDays, setIsOddDays] = useState<boolean>(true);
+  const [startTime, setStartTime] = useState<string>("");
+  const [endTime, setEndTime] = useState<string>("");
 
   const openModal = () => setIsModalVisible(true);
   const closeModal = () => setIsModalVisible(false);
@@ -115,11 +155,6 @@ function GroupsPage() {
       const response = await client.get("employees/list/by/role/1/");
       if (Array.isArray(response.data)) {
         setTeachers(response.data);
-      } else {
-        console.error(
-          "API response is not in the expected format:",
-          response.data
-        );
       }
     } catch (error) {
       console.error("Error fetching teachers:", error);
@@ -152,34 +187,69 @@ function GroupsPage() {
     }
   }, [searchQuery, groups]);
 
-
-
-  const handleEditClick = (groupId: number, currentTeacher: string) => {
+  const handleEditClick = (groupId: number) => {
     if (editingGroupId === groupId) {
+      // bekor qilish
       setEditingGroupId(null);
       setEditingGroupName(null);
       setSelectedTeacherId(null);
+      setStartTime("");
+      setEndTime("");
+      setIsOddDays(true);
     } else {
-      setEditingGroupId(groupId);
-      setEditingGroupName(
-        groups.find((group) => group.id === groupId)?.name ?? ""
-      );
-      setSelectedTeacherId(currentTeacher ? Number(currentTeacher) : null);
+      const group = groups.find((g) => g.id === groupId);
+      if (group) {
+        setEditingGroupId(groupId);
+        setEditingGroupName(group.name);
+
+        // Bu joy to'g'ri — teacher endi object!
+        setSelectedTeacherId(group.teacher.id);
+
+        // Schedule yuklash
+        if (group.schedule && group.schedule.length > 0) {
+          const first = group.schedule[0];
+          setStartTime(first.starts_at.substring(0, 5));
+          setEndTime(first.ends_at.substring(0, 5));
+
+          const days = group.schedule.map((s) => s.day);
+          const isOdd =
+            days.length === 3 && daysOfWeekOdd.every((d) => days.includes(d));
+          setIsOddDays(isOdd);
+        }
+      }
     }
   };
 
   const handleSaveTeacher = async (id: number) => {
-    const formData = new FormData();
-    formData.append("name", editingGroupName ?? "");
-    formData.append("teacher", String(selectedTeacherId ?? ""));
-
     try {
-      await client.patch(`education/group/update/${id}/`, formData);
+      const daysOfWeek = isOddDays ? daysOfWeekOdd : daysOfWeekEven;
+      const schedule = daysOfWeek.map((day) => ({
+        day,
+        starts_at: `${startTime}:00`,
+        ends_at: `${endTime}:00`,
+      }));
+
+      // 1. Guruhni yangilash (name + teacher)
+      const groupData = new FormData();
+      groupData.append("name", editingGroupName ?? "");
+
+      // Muhim: teacher ID number bo'lishi kerak, string emas!
+      if (selectedTeacherId) {
+        groupData.append("teacher", selectedTeacherId.toString()); // yoki shunchaki selectedTeacherId
+      }
+
+      await client.patch(`education/group/update/${id}/`, groupData);
+
+      // 2. Jadvalni alohida yangilash
+      await client.put(`education/group/${id}/schedule/update/`, {
+        schedule,
+      });
+
       toast.success(contents.toast1);
       setEditingGroupId(null);
-      setEditingGroupName(null);
-      setSelectedTeacherId(null);
-    } catch (err) {
+      fetchGroups();
+    } catch (err: any) {
+      console.error(err.response?.data);
       toast.error(contents.toast2);
     }
   };
@@ -224,40 +294,31 @@ function GroupsPage() {
         </div>
       </div>
 
+      <div className="flex justify-end mb-6 items-center md:hidden">
+        <div
+          className={`transition-all duration-300 ${
+            isSearchVisible
+              ? "w-64 opacity-100"
+              : "w-0 opacity-0 overflow-hidden"
+          } mx-2`}
+        >
+          <input
+            type="text"
+            placeholder={contents.searchPlaceholder}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="p-2 border rounded w-full"
+          />
+        </div>
+        <button
+          onClick={() => setIsSearchVisible(!isSearchVisible)}
+          className="bg-gray-200 me-5 hover:bg-gray-300 rounded py-3 px-4"
+        >
+          <i className="fa fa-search"></i>
+        </button>
+      </div>
 
-      {/* <div className="w-full 2xl:h-[88%] h-[87%]  overflow-y-auto"> */}
-
-<div className="flex justify-end mb-6 items-center md:hidden ">
-<div
-              className={`transition-all duration-300 ${
-                isSearchVisible
-                  ? "w-64 opacity-100"
-                  : "w-0 opacity-0 overflow-hidden"
-              } mx-2`}
-            >
-              <input
-                type="text"
-                placeholder={contents.searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="p-2 border rounded w-full"
-              />
-            </div>
-
-      <button
-              onClick={() => setIsSearchVisible(!isSearchVisible)}
-              className="bg-gray-200 me-5  hover:bg-gray-300 rounded py-3 px-4"
-            >
-              <i className="fa fa-search"></i>
-            </button>
-</div>
-
-
-
-
-
-
-      <div className="w-full 2xl:h-[88%] h-[70%]  overflow-y-auto">
+      <div className="w-full 2xl:h-[88%] h-[70%] overflow-y-auto">
         <div className="courses pt-6 pb-12 flex flex-col gap-5 justify-center content-center">
           {loading ? (
             <Loading />
@@ -308,12 +369,12 @@ function GroupsPage() {
                       />
                     </button>
                     <button
-                      className={`2xl:m-4 mx-2 m-2 me-0 ${
+                      className={`... ${
                         editingGroupId === item.id
                           ? "bg-red-600"
                           : "bg-yellow-500"
-                      } w-[30px] h-[30px] dark:text-gray-200 text-white rounded-md`}
-                      onClick={() => handleEditClick(item.id, item.teacher)}
+                      } ... 2xl:m-4 mx-2 w-[30px] h-[30px] dark:text-gray-200 text-white rounded-md`}
+                      onClick={() => handleEditClick(item.id)} // Faqat ID beramiz
                     >
                       <i
                         className={`fa-solid ${
@@ -322,14 +383,14 @@ function GroupsPage() {
                       />
                     </button>
                     <button
-                      onClick={() => deleteGroup(item.id)} // Call the delete function
+                      onClick={() => deleteGroup(item.id)}
                       className="2xl:m-4 mx-2 bg-red-600 w-[30px] h-[30px] dark:text-gray-200 text-white rounded-md"
                     >
                       <i className="fa-solid fa-trash-can" />
                     </button>
-
                   </div>
                 </div>
+
                 {editingGroupId === item.id && (
                   <div className="mt-4 p-4 text-center border-t-2">
                     <input
@@ -337,7 +398,9 @@ function GroupsPage() {
                       value={editingGroupName ?? ""}
                       onChange={(e) => setEditingGroupName(e.target.value)}
                       className="p-2 border rounded w-full mb-2 dark:bg-slate-700 dark:text-white"
+                      placeholder="Guruh nomi"
                     />
+
                     <select
                       value={selectedTeacherId ?? ""}
                       onChange={(e) =>
@@ -347,15 +410,77 @@ function GroupsPage() {
                     >
                       <option value="">{contents.select}</option>
                       {teachers.map((teacher) => (
-                        <option
-                          key={teacher.id}
-                          value={teacher.id}
-                          className="uppercase"
-                        >
-                          {`${teacher.user.first_name} ${teacher.user.last_name} ${teacher.user.sure_name}`}
+                        <option key={teacher.id} value={teacher.id}>
+                          {teacher.user.first_name} {teacher.user.last_name}{" "}
+                          {teacher.user.sure_name}
                         </option>
                       ))}
                     </select>
+
+                    {/* Joriy o'qituvchi nomi ko'rsatish */}
+                    {editingGroupId === item.id && (
+                      <div className="text-sm text-gray-600 mb-2">
+                        Joriy o'qituvchi:{" "}
+                        <strong>
+                          {
+                            groups.find((g) => g.id === item.id)?.teacher
+                              .first_name
+                          }{" "}
+                          {
+                            groups.find((g) => g.id === item.id)?.teacher
+                              .last_name
+                          }
+                        </strong>
+                      </div>
+                    )}
+
+                    <div className="w-full mx-auto mt-5">
+                      <h3 className="text-lg text-center mb-3">
+                        {contents.days}
+                      </h3>
+                      <div className="flex justify-center mb-4">
+                        <button
+                          type="button"
+                          className={`px-4 py-2 ${
+                            isOddDays ? "bg-blue-700" : "bg-blue-300"
+                          } text-white rounded-l hover:bg-blue-700`}
+                          onClick={() => setIsOddDays(true)}
+                        >
+                          {contents.odd}
+                        </button>
+                        <button
+                          type="button"
+                          className={`px-4 py-2 ${
+                            !isOddDays ? "bg-blue-700" : "bg-blue-300"
+                          } text-white rounded-r hover:bg-blue-700`}
+                          onClick={() => setIsOddDays(false)}
+                        >
+                          {contents.couple}
+                        </button>
+                      </div>
+
+                      <div className="flex gap-4 justify-center mb-4">
+                        <div className="flex flex-col w-1/2">
+                          <label className="mb-1">{contents.from}</label>
+                          <input
+                            type="time"
+                            className="p-2 border-slate-400 rounded border dark:bg-slate-700 dark:text-white"
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                          />
+                        </div>
+                        <div className="flex flex-col w-1/2">
+                          <label className="mb-1">{contents.to}</label>
+                          <input
+                            type="time"
+                            className="p-2 border-slate-400 rounded border dark:bg-slate-700 dark:text-white"
+                            value={endTime}
+                            onChange={(e) => setEndTime(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     <button
                       onClick={() => handleSaveTeacher(item.id)}
                       className="py-3 px-4 text-white bg-blue-400 rounded hover:bg-blue-700"
@@ -369,12 +494,13 @@ function GroupsPage() {
           )}
         </div>
       </div>
+
       <ConfirmDeleteModal
-            isVisible={isDeleteModalVisible}
-            onClose={() => setIsDeleteModalVisible(false)}
-            groupId={selectedGroupId}
-            fetchGroups={fetchGroups}
-        />
+        isVisible={isDeleteModalVisible}
+        onClose={() => setIsDeleteModalVisible(false)}
+        groupId={selectedGroupId}
+        fetchGroups={fetchGroups}
+      />
     </div>
   );
 }

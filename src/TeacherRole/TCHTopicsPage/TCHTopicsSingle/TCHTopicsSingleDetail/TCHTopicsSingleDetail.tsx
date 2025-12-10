@@ -1,205 +1,162 @@
+// TopicDetailPage.tsx – TO‘LIQ, XATOSIZ VERSIYA
+
 import React, { useEffect, useState, useContext } from 'react';
-import {  useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import client from "../../../../components/services";
 import { Langs } from '../../../../enums';
 import { GlobalContext } from '../../../../App';
 import Loading from '../../../../components/LoadingComponent/Loading';
 import Modal from "./Modal.tsx";
+import ExamCreateModal from "./ExamCreateModal.tsx";
 
-type THomework = {
-    id: number;
-    file: string;
-    description: string | null;
-    path: string | null;
-    main: string | null;
-}
-
-// Kurs tafsilotlari uchun tip
+// Types (oldingi kodingizdan nusxa)
+type THomework = { id: number; file: string; description: string | null; path: string | null; main: string | null; };
 type TCourseDetail = {
-    id: number;
-    group: {
-        id: number;
-        name: string;
-
-        schedule: {
-            id: number;
-            day: string;
-            starts_at: string;
-            ends_at: string;
-        }[];
-        status: boolean;
-    };
-    date: string;
-    unit: string;
-    homework: THomework | null;
-    exam: string | null;
-    source: {
-        id: number;
-        file: string;
-        description: string;
-        path: string | null;
-        main: string | null;
-    }[];
-    video: {
-        id: number;
-        file: string;
-        description: string | null;
-        path: string | null;
-        main: string | null;
-    };
+  id: number;
+  group: { id: number; name: string; schedule: any[]; status: boolean; };
+  date: string;
+  unit: string;
+  homework: THomework | null;
+  exam: string | null;
+  source: { id: number; file: string; description: string; path: string | null; main: string | null; }[];
+  video: { id: number; file: string; description: string | null; path: string | null; main: string | null; };
 };
 
-// Har bir til uchun kontentni belgilash
-type TTopicsComponentContent = {
-    title: string;
-    loading: string;
-    noHomework: string;
-    downloadHomework: string;
-    additionalInfo: string;
-    fetchError: string;
-    fetchErrorMessage: string;
-}
-
-const contentsMap = new Map<Langs, TTopicsComponentContent>([
-    [Langs.UZ, {
-        title: "Mavzu",
-        loading: "Yuklanmoqda...",
-        noHomework: "Uyga vazifa berilmagan.",
-        downloadHomework: "Uyga vazifani yuklab olish",
-        additionalInfo: "O'rganish uchun qo'shimcha ma'lumotlar",
-        fetchError: "Kurs tafsilotlarini olishda xatolik yuz berdi",
-        fetchErrorMessage: "Kurs tafsilotlarini olishda xatolik yuz berdi",
-    }],
-    [Langs.RU, {
-        title: "Тема",
-        loading: "Загрузка...",
-        noHomework: "Домашнее задание не задано.",
-        downloadHomework: "Скачать домашнее задание",
-        additionalInfo: "Дополнительная информация для изучения",
-        fetchError: "Ошибка при получении деталей курса",
-        fetchErrorMessage: "Произошла ошибка при получении деталей курса",
-    }],
-    [Langs.EN, {
-        title: "Topic",
-        loading: "Loading...",
-        noHomework: "No homework assigned.",
-        downloadHomework: "Download homework",
-        additionalInfo: "Additional information for learning",
-        fetchError: "Failed to fetch course details",
-        fetchErrorMessage: "An error occurred while fetching course details",
-    }]
+const contentsMap = new Map<Langs, any>([
+  [Langs.UZ, { title: "Mavzu", noHomework: "Uyga vazifa berilmagan.", additionalInfo: "Qo‘shimcha materiallar" }],
+  [Langs.RU, { title: "Тема", noHomework: "Домашнее задание не задано.", additionalInfo: "Дополнительные материалы" }],
+  [Langs.EN, { title: "Topic", noHomework: "No homework assigned.", additionalInfo: "Additional materials" }],
 ]);
 
 const TopicDetailPage: React.FC = () => {
-    const { lang } = useContext(GlobalContext);
-    const contents = contentsMap.get(lang) as TTopicsComponentContent;
-    const { id, moduleId } = useParams<{ id: string, moduleId: string }>();
-    const [courseDetail, setCourseDetail] = useState<TCourseDetail | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [isModalVisible, setIsModalVisible] = useState(false);
+  const { lang } = useContext(GlobalContext);
+  const t = contentsMap.get(lang)!;
 
-    const openModal = () => setIsModalVisible(true);
-    const closeModal = () => setIsModalVisible(false);
+  // id – string bo‘lib keladi (masalan "9")
+  const { id } = useParams<{ id: string }>();
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const response = await client.get(`education/lessons/${id}/`);
-                setCourseDetail(response.data as TCourseDetail);
-            } catch (error) {
-                console.error(contents.fetchErrorMessage, error);
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, [moduleId, isModalVisible]);
+  // Agar id bo‘lmasa – darrov xato ko‘rsatamiz
+  if (!id) {
+    return <div className="text-center text-red-600 text-2xl">Dars ID topilmadi!</div>;
+  }
 
-    if (loading) {
-        return <Loading />;
-    }
+  const lessonId = Number(id); // faqat son bo‘lishi kerak
+  if (isNaN(lessonId)) {
+    return <div className="text-center text-red-600 text-2xl">Noto‘g‘ri ID</div>;
+  }
 
-    if (!courseDetail) {
-        return <p>{contents.fetchError}</p>;
-    }
+  const [courseDetail, setCourseDetail] = useState<TCourseDetail | null>(null);
+  const [loading, setLoading] = useState(true);
 
-    
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isExamModalOpen, setIsExamModalOpen] = useState(false);
 
-    return (
-        <div className="w-full mt-12 md:mt-0">
-            <div className="mx-5 my-5 mb-5 justify-between items-center text-center flex gap-2">
-                <button onClick={() => window.history.back()}
-                        className='w-12 h-12 my-3 ms-5 bg-gray-200 hover:bg-gray-300 rounded'>
-                    <i className='fa-solid fa-arrow-left text-black'></i>
-                </button>
-                <div className="flex gap-4 2xl:text-4xl text-3xl font-bold dark:text-customText">
-                    <h1 className="text-3xl">{contents.title}: <>{courseDetail.unit}</></h1>
-                </div>
-               <div>
-               
-               
-               <button
-                    onClick={openModal}
-                    className='w-12  h-12 my-3 ms-5 bg-yellow-500 hover:bg-gray-300 rounded'>
-                    <i className='fa-solid fa-pen text-black'></i>
-                </button>
-               </div>
-            </div>
+  // Ma'lumotlarni yuklash
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await client.get(`/education/lessons/${lessonId}/`);
+        setCourseDetail(res.data);
+      } catch (err: any) {
+        console.error("Dars yuklanmadi:", err.response?.data || err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [lessonId]);
 
-           <div className=" 2xl:h-[88%] h-[75%]  px-4 md:px-10 py-4 overflow-hidden">
-  <div className="h-full overflow-y-auto space-y-6 pb-10">
+  if (loading) return <Loading />;
+  if (!courseDetail) return <div className="text-center py-10 text-red-500">Dars topilmadi</div>;
 
-    {/* Homework description */}
-    {courseDetail.homework?.description && (
-      <p className="text-base md:text-lg dark:text-customText leading-relaxed">
-        {courseDetail.homework.description}
-      </p>
-    )}
+  return (
+    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
 
-    {/* Video section */}
-    {courseDetail.homework ? (
-      <div className="flex justify-center">
-        <div className="w-full md:w-9/12 lg:w-7/12">
-          <video
-            className="rounded-xl w-full max-h-[420px] md:max-h-[500px] object-contain"
-            controls
-            preload="auto"
-            src={courseDetail.video.file}
-          ></video>
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-5 bg-white dark:bg-gray-800 shadow">
+        <button onClick={() => window.history.back()} className="p-3 rounded-lg bg-gray-200 hover:bg-gray-300">
+          <i className="fa-solid fa-arrow-left text-xl"></i>
+        </button>
+
+        <h1 className="text-2xl md:text-3xl font-bold dark:text-white">
+          {t.title}: {courseDetail.unit}
+        </h1>
+
+        <div className="flex items-center gap-4">
+          {/* Tahrirlash */}
+          <button
+            onClick={() => setIsEditModalOpen(true)}
+            className="p-3 bg-yellow-500 hover:bg-yellow-600 rounded-lg text-white">
+            <i className="fa-solid fa-pen"></i>
+          </button>
+
+          {/* Imtihon yaratish – faqat hali imtihon bo‘lmasa ko‘rsatiladi */}
+          {!courseDetail.exam && (
+            <button
+              onClick={() => setIsExamModalOpen(true)}
+              className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-bold flex items-center gap-2 shadow-lg">
+              <i className="fa-solid fa-graduation-cap"></i>
+              {lang === Langs.UZ ? "Imtihon yaratish" : lang === Langs.RU ? "Создать экзамен" : "Create Exam"}
+            </button>
+          )}
         </div>
       </div>
-    ) : (
-      <p className="text-2xl dark:text-customText">{contents.noHomework}</p>
-    )}
 
-    {/* Additional information */}
-    <div className="mt-4">
-      <h1 className="text-2xl font-semibold dark:text-customText mb-3">
-        {contents.additionalInfo}
-      </h1>
-
-      <div className="space-y-3">
-        {courseDetail.source?.map((item) => (
-          <div key={item.id} className="border-b pb-2">
-            <p className="dark:text-customText">{item.description}</p>
-            <a
-              href={item.file}
-              target="_blank"
-              className="text-blue-500 break-all hover:underline"
-            >
-              {item.file}
-            </a>
+      {/* Kontent */}
+      <div className="p-6 max-w-5xl mx-auto space-y-10">
+        {/* Video */}
+        {courseDetail.video && (
+          <div className="flex justify-center">
+            <video controls className="rounded-xl max-w-4xl w-full shadow-2xl" src={courseDetail.video.file} />
           </div>
-        ))}
+        )}
+
+        {/* Homework */}
+        {courseDetail.homework?.description && (
+          <div className="p-6 bg-white dark:bg-gray-800 rounded-xl">
+            <p className="text-lg leading-relaxed">{courseDetail.homework.description}</p>
+          </div>
+        )}
+
+        {/* Agar homework bo‘lmasa */}
+        {!courseDetail.homework && !courseDetail.video && (
+          <p className="text-center text-2xl text-gray-500">{t.noHomework}</p>
+        )}
+
+        {/* Qo‘shimcha materiallar */}
+        {courseDetail.source.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">{t.additionalInfo}</h2>
+            <div className="grid gap-4">
+              {courseDetail.source.map(s => (
+                <div key={s.id} className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+                  {s.description && <p className="mb-2">{s.description}</p>}
+                  <a href={s.file} target="_blank" className="text-blue-600 hover:underline break-all">
+                    {s.file}
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* MODALLAR */}
+      <Modal isVisible={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
+
+      <ExamCreateModal
+        isVisible={isExamModalOpen}
+        onClose={() => setIsExamModalOpen(false)}
+        lessonId={lessonId}                    // 100% to‘g‘ri son
+        groupId={courseDetail.group.id}         // avtomatik yuboriladi
+        onSuccess={() => {
+          // Muvaffaqiyatdan keyin sahifani yangilaymiz
+          window.location.reload(); // yoki useEffect ishlasin desangiz – shunchaki modalni yopamiz
+        }}
+      />
     </div>
-
-    <Modal isVisible={isModalVisible} onClose={closeModal} />
-
-  </div>
-</div>
-
-        </div>
-    );
-}
+  );
+};
 
 export default TopicDetailPage;

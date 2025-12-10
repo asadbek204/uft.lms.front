@@ -151,7 +151,7 @@ function Modal({ isVisible, onClose }: TModalProps) {
   }, []);
 
   useEffect(() => {
-    setSelectedLanguage(langSelectData[0].code); // Set default language
+    setSelectedLanguage(langSelectData[0].code); 
   }, []);
 
   const addGroup = async (e: FormEvent) => {
@@ -160,10 +160,9 @@ function Modal({ isVisible, onClose }: TModalProps) {
     setErrorMessage(""); 
 
     if (!groupNameValue) {
-      setErrorMessage(contents.required); // Set the error message
+      setErrorMessage(contents.required); 
       return; 
     }
-    // Allow any non-empty group name; remove strict prefix validation that blocked valid names like "Boys"
     setError("");
 
     const daysOfWeek = isOddDays ? daysOfWeekOdd : daysOfWeekEven;
@@ -175,7 +174,7 @@ function Modal({ isVisible, onClose }: TModalProps) {
 
     const formData = {
       name: groupNameValue,
-      status: true,
+      // status: true,
       schedule,
       teacher: Number(selectedTeacher),
       course: Number(module),
