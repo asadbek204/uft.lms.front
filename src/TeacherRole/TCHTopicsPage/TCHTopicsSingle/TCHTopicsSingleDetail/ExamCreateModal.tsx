@@ -1,5 +1,3 @@
-// ExamCreateModal.tsx – FINAL VERSIYA (ISHLAYDI!)
-
 import React, { useContext, useState, useEffect } from 'react';
 import client from "../../../../components/services";
 import { Langs } from '../../../../enums';

@@ -8,6 +8,35 @@ import { toast } from "react-toastify";
 import Loading from "../../components/LoadingComponent/Loading.tsx";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
+type TSchedule = {
+  id: number;
+  day: string;
+  starts_at: string;
+  ends_at: string;
+};
+
+type TGroups = {
+  id: number;
+  name: string;
+  status: string | boolean; 
+  teacher: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    sure_name: string;
+  };
+  schedule: TSchedule[];
+};
+
+type TTeacher = {
+  id: number;
+  user: {
+    first_name: string;
+    last_name: string;
+    sure_name: string;
+  };
+};
+
 type TGroupsComponentContent = {
   title: string;
   searchPlaceholder: string;
@@ -21,6 +50,11 @@ type TGroupsComponentContent = {
   couple: string;
   from: string;
   to: string;
+  activateGroup: string;
+  activating: string;
+  activatedSuccess: string;
+  activateError: string;
+  active: string;
 };
 
 const contentsMap = new Map<Langs, TGroupsComponentContent>([
@@ -33,12 +67,17 @@ const contentsMap = new Map<Langs, TGroupsComponentContent>([
       save: "Saqlash",
       select: "O'qituvchini tanlang",
       toast1: "O'zgarishlar muvaffaqiyatli saqlandi",
-      toast2: "O'zgarishlarni saqlashda xatolik yuz berdi",
+      toast2: "O'zgarishl USEDarni saqlashda xatolik yuz berdi",
       days: "Kunlarini tanlash",
       odd: "Toq kunlar",
       couple: "Juft kunlar",
       from: "Boshlanish",
       to: "Tugash",
+      activateGroup: "Guruhni faollashtirish",
+      activating: "Faollashtirilmoqda...",
+      activatedSuccess: "Guruh muvaffaqiyatli faollashtirildi!",
+      activateError: "Guruhni faollashtirishda xatolik yuz berdi",
+      active: "Faol",
     },
   ],
   [
@@ -47,15 +86,20 @@ const contentsMap = new Map<Langs, TGroupsComponentContent>([
       title: "Все группы",
       searchPlaceholder: "Поиск по названию группы",
       copy: "Скопировано",
-      save: "Сохранять",
+      save: "Сохранить",
       select: "Выберите учителя",
       toast1: "Изменения успешно сохранены",
       toast2: "Произошла ошибка при сохранении изменений",
       days: "Выберите дни",
-      odd: "Нечетные дни",
+      odd: "Нечётные дни",
       couple: "Чётные дни",
       from: "Начало",
       to: "Конец",
+      activateGroup: "Активировать группу",
+      activating: "Активация...",
+      activatedSuccess: "Группа успешно активирована!",
+      activateError: "Ошибка при активации группы",
+      active: "Актив",
     },
   ],
   [
@@ -73,38 +117,15 @@ const contentsMap = new Map<Langs, TGroupsComponentContent>([
       couple: "Even days",
       from: "Start",
       to: "End",
+      activateGroup: "Activate Group",
+      activating: "Activating...",
+      activatedSuccess: "Group activated successfully!",
+      activateError: "Failed to activate group",
+      active: "Active",
     },
   ],
 ]);
 
-type TSchedule = {
-  id: number;
-  day: string;
-  starts_at: string;
-  ends_at: string;
-};
-
-type TGroups = {
-  id: number;
-  name: string;
-  teacher: {
-    id: number;
-    first_name: string;
-    last_name: string;
-    sure_name: string;
-  };
-  schedule: TSchedule[];
-  // boshqa fieldlar...
-};
-
-type TTeacher = {
-  id: number;
-  user: {
-    first_name: string;
-    last_name: string;
-    sure_name: string;
-  };
-};
 const daysOfWeekOdd = ["MO", "WE", "FR"];
 const daysOfWeekEven = ["TU", "TH", "SA"];
 
@@ -121,15 +142,13 @@ function GroupsPage() {
   const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
   const [editingGroupName, setEditingGroupName] = useState<string | null>(null);
   const [teachers, setTeachers] = useState<TTeacher[]>([]);
-  const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(
-    null
-  );
+  const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
-
   const [isOddDays, setIsOddDays] = useState<boolean>(true);
   const [startTime, setStartTime] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
+  const [activatingId, setActivatingId] = useState<number | null>(null);
 
   const openModal = () => setIsModalVisible(true);
   const closeModal = () => setIsModalVisible(false);
@@ -137,11 +156,9 @@ function GroupsPage() {
   const fetchGroups = async () => {
     setLoading(true);
     try {
-      const response = await client.get(
-        "education/group/list/?needed_role=admin"
-      );
+      const response = await client.get("education/group/list/?needed_role=admin");
       if (Array.isArray(response.data)) {
-        setGroups(response.data.filter((el) => el.status) as TGroups[]);
+        setGroups(response.data as TGroups[]);
       }
     } catch (error) {
       console.error("Failed to fetch groups:", error);
@@ -170,6 +187,20 @@ function GroupsPage() {
     openDeleteModal(groupId);
   };
 
+  const handleActivateGroup = async (groupId: number) => {
+    setActivatingId(groupId);
+    try {
+      await client.put(`education/group/activate/${groupId}/`);
+      toast.success(contents.activatedSuccess);
+      fetchGroups();
+    } catch (err: any) {
+      console.error("Activate error:", err);
+      toast.error(contents.activateError);
+    } finally {
+      setActivatingId(null);
+    }
+  };
+
   useEffect(() => {
     fetchGroups();
     fetchTeachers();
@@ -189,7 +220,6 @@ function GroupsPage() {
 
   const handleEditClick = (groupId: number) => {
     if (editingGroupId === groupId) {
-      // bekor qilish
       setEditingGroupId(null);
       setEditingGroupName(null);
       setSelectedTeacherId(null);
@@ -201,19 +231,15 @@ function GroupsPage() {
       if (group) {
         setEditingGroupId(groupId);
         setEditingGroupName(group.name);
-
-        // Bu joy to'g'ri — teacher endi object!
         setSelectedTeacherId(group.teacher.id);
 
-        // Schedule yuklash
         if (group.schedule && group.schedule.length > 0) {
           const first = group.schedule[0];
           setStartTime(first.starts_at.substring(0, 5));
           setEndTime(first.ends_at.substring(0, 5));
 
           const days = group.schedule.map((s) => s.day);
-          const isOdd =
-            days.length === 3 && daysOfWeekOdd.every((d) => days.includes(d));
+          const isOdd = days.length === 3 && daysOfWeekOdd.every((d) => days.includes(d));
           setIsOddDays(isOdd);
         }
       }
@@ -229,21 +255,14 @@ function GroupsPage() {
         ends_at: `${endTime}:00`,
       }));
 
-      // 1. Guruhni yangilash (name + teacher)
       const groupData = new FormData();
       groupData.append("name", editingGroupName ?? "");
-
-      // Muhim: teacher ID number bo'lishi kerak, string emas!
       if (selectedTeacherId) {
-        groupData.append("teacher", selectedTeacherId.toString()); // yoki shunchaki selectedTeacherId
+        groupData.append("teacher", selectedTeacherId.toString());
       }
 
       await client.patch(`education/group/update/${id}/`, groupData);
-
-      // 2. Jadvalni alohida yangilash
-      await client.put(`education/group/${id}/schedule/update/`, {
-        schedule,
-      });
+      await client.put(`education/group/${id}/schedule/update/`, { schedule });
 
       toast.success(contents.toast1);
       setEditingGroupId(null);
@@ -270,9 +289,7 @@ function GroupsPage() {
             </button>
             <div
               className={`transition-all hidden md:block duration-300 ${
-                isSearchVisible
-                  ? "w-64 opacity-100"
-                  : "w-0 opacity-0 overflow-hidden"
+                isSearchVisible ? "w-64 opacity-100" : "w-0 opacity-0 overflow-hidden"
               } mx-2`}
             >
               <input
@@ -280,7 +297,7 @@ function GroupsPage() {
                 placeholder={contents.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="p-2 border rounded w-full"
+                className="p-2 border rounded w-full dark:bg-gray-700 dark:text-white"
               />
             </div>
             <button
@@ -297,9 +314,7 @@ function GroupsPage() {
       <div className="flex justify-end mb-6 items-center md:hidden">
         <div
           className={`transition-all duration-300 ${
-            isSearchVisible
-              ? "w-64 opacity-100"
-              : "w-0 opacity-0 overflow-hidden"
+            isSearchVisible ? "w-64 opacity-100" : "w-0 opacity-0 overflow-hidden"
           } mx-2`}
         >
           <input
@@ -307,7 +322,7 @@ function GroupsPage() {
             placeholder={contents.searchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="p-2 border rounded w-full"
+            className="p-2 border rounded w-full dark:bg-gray-700 dark:text-white"
           />
         </div>
         <button
@@ -323,68 +338,53 @@ function GroupsPage() {
           {loading ? (
             <Loading />
           ) : (
-            filteredGroups.map((item, index) => (
+            filteredGroups.map((item) => (
               <div
-                key={index}
+                key={item.id}
                 className="relative w-5/6 flex flex-col rounded-md mx-auto drop-shadow-lg bg-white dark:bg-gray-700"
               >
-                <div className="flex justify-between items-center px-4 py-1">
+                <div className="flex justify-between items-center px-4 py-2">
                   <Link
                     to={`${item.id}`}
                     className="block uppercase text-xl border-gray-300 duration-300 ease-in-out hover:text-blue-400 dark:hover:text-blue-400 dark:text-white"
                   >
                     {item.name}
                   </Link>
-                  <div className="flex items-center">
-                    <button
-                      className="2xl:m-4 mx-2 m-2 me-0 w-[30px] h-[30px] dark:text-gray-200 text-white rounded-md"
-                      onClick={() => {
-                        const el = document.getElementById(
-                          `link-${item.id}`
-                        ) as HTMLInputElement;
-                        const linkToCopy = el.value;
-                        navigator.clipboard
-                          .writeText(linkToCopy)
-                          .then(() => {
-                            toast.success(contents.copy);
-                          })
-                          .catch(() => {
-                            toast.error(
-                              "Copy text not supported on this browser!"
-                            );
-                          });
-                      }}
-                    >
-                      <img
-                        className="w-7 dark:invert"
-                        src="https://cdn3.iconfinder.com/data/icons/glypho-generic-icons/64/link-chain-512.png"
-                        alt="Copy link"
-                      />
-                      <input
-                        type="text"
-                        hidden
-                        name={`link-${item.id}`}
-                        id={`link-${item.id}`}
-                        value={`https://demo.ba.lms.uft.uz/students-form/${item.id}`}
-                      />
-                    </button>
-                    <button
-                      className={`... ${
-                        editingGroupId === item.id
-                          ? "bg-red-600"
-                          : "bg-yellow-500"
-                      } ... 2xl:m-4 mx-2 w-[30px] h-[30px] dark:text-gray-200 text-white rounded-md`}
-                      onClick={() => handleEditClick(item.id)} // Faqat ID beramiz
-                    >
-                      <i
-                        className={`fa-solid ${
-                          editingGroupId === item.id ? "fa-close" : "fa-pen"
+
+                  <div className="flex items-center gap-3">
+
+                    {item.status === "recruiting" && (
+                      <button
+                        onClick={() => handleActivateGroup(item.id)}
+                        disabled={activatingId === item.id}
+                        className={`px-4 py-2 text-sm font-medium text-white rounded-md transition-all ${
+                          activatingId === item.id
+                            ? "bg-gray-500 cursor-not-allowed"
+                            : "bg-green-600 hover:bg-green-700"
                         }`}
-                      />
+                      >
+                        {activatingId === item.id ? contents.activating : contents.activateGroup}
+                      </button>
+                    )}
+
+                    {(item.status === "true" || item.status === true || item.status === "active") && (
+                      <span className="px-3 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">
+                        {contents.active}
+                      </span>
+                    )}
+
+                    <button
+                      className={`${
+                        editingGroupId === item.id ? "bg-red-600" : "bg-yellow-500"
+                      } w-[30px] h-[30px] text-white rounded-md hover:opacity-90`}
+                      onClick={() => handleEditClick(item.id)}
+                    >
+                      <i className={`fa-solid ${editingGroupId === item.id ? "fa-close" : "fa-pen"}`} />
                     </button>
+
                     <button
                       onClick={() => deleteGroup(item.id)}
-                      className="2xl:m-4 mx-2 bg-red-600 w-[30px] h-[30px] dark:text-gray-200 text-white rounded-md"
+                      className="bg-red-600 w-[30px] h-[30px] text-white rounded-md hover:opacity-90"
                     >
                       <i className="fa-solid fa-trash-can" />
                     </button>
@@ -403,56 +403,30 @@ function GroupsPage() {
 
                     <select
                       value={selectedTeacherId ?? ""}
-                      onChange={(e) =>
-                        setSelectedTeacherId(Number(e.target.value))
-                      }
+                      onChange={(e) => setSelectedTeacherId(Number(e.target.value))}
                       className="p-2 border rounded w-full mb-2 dark:bg-slate-700 dark:text-white"
                     >
                       <option value="">{contents.select}</option>
                       {teachers.map((teacher) => (
                         <option key={teacher.id} value={teacher.id}>
-                          {teacher.user.first_name} {teacher.user.last_name}{" "}
-                          {teacher.user.sure_name}
+                          {teacher.user.first_name} {teacher.user.last_name} {teacher.user.sure_name}
                         </option>
                       ))}
                     </select>
 
-                    {/* Joriy o'qituvchi nomi ko'rsatish */}
-                    {editingGroupId === item.id && (
-                      <div className="text-sm text-gray-600 mb-2">
-                        Joriy o'qituvchi:{" "}
-                        <strong>
-                          {
-                            groups.find((g) => g.id === item.id)?.teacher
-                              .first_name
-                          }{" "}
-                          {
-                            groups.find((g) => g.id === item.id)?.teacher
-                              .last_name
-                          }
-                        </strong>
-                      </div>
-                    )}
-
                     <div className="w-full mx-auto mt-5">
-                      <h3 className="text-lg text-center mb-3">
-                        {contents.days}
-                      </h3>
+                      <h3 className="text-lg text-center mb-3">{contents.days}</h3>
                       <div className="flex justify-center mb-4">
                         <button
                           type="button"
-                          className={`px-4 py-2 ${
-                            isOddDays ? "bg-blue-700" : "bg-blue-300"
-                          } text-white rounded-l hover:bg-blue-700`}
+                          className={`px-4 py-2 ${isOddDays ? "bg-blue-700" : "bg-blue-300"} text-white rounded-l hover:bg-blue-700`}
                           onClick={() => setIsOddDays(true)}
                         >
                           {contents.odd}
                         </button>
                         <button
                           type="button"
-                          className={`px-4 py-2 ${
-                            !isOddDays ? "bg-blue-700" : "bg-blue-300"
-                          } text-white rounded-r hover:bg-blue-700`}
+                          className={`px-4 py-2 ${!isOddDays ? "bg-blue-700" : "bg-blue-300"} text-white rounded-r hover:bg-blue-700`}
                           onClick={() => setIsOddDays(false)}
                         >
                           {contents.couple}
