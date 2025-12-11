@@ -82,12 +82,12 @@ const ExamCreateModal: React.FC<Props> = ({ isVisible, onClose, lessonId, groupI
     if (description.trim()) formData.append('description', description.trim());
 
     try {
-      // Bu yerda lessonId ni aniq yuboramiz
       const url = `/education/exam/make/lesson/${lessonId}/`;
-      console.log("Yuborilayotgan URL:", url);
-      console.log("lessonId:", lessonId, "groupId:", groupId);
 
       await client.put(url, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
         timeout: 60000,
       });
 
@@ -157,6 +157,7 @@ const ExamCreateModal: React.FC<Props> = ({ isVisible, onClose, lessonId, groupI
             <label className="block text-sm font-medium dark:text-gray-300">{t.description}</label>
             <textarea
               value={description}
+              required
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               className="mt-1 w-full px-4 py-2 border rounded-lg dark:bg-gray-700"
