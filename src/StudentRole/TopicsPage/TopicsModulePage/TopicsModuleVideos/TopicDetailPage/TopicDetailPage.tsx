@@ -29,7 +29,7 @@ type TCourseDetail = {
   date: string;
   unit: string;
   homework: THomework | null;
-  exam: number | string | null; 
+  exam: number | string | null; // faqat bog'lanish uchun
   source: TSource[];
   video: {
     id: number;
@@ -79,12 +79,14 @@ const TopicDetailPage: React.FC = () => {
       try {
         setLoading(true);
 
+        // 1. Dars ma'lumotlarini olish
         const lessonRes = await client.get(`/education/lessons/${lessonId}/`);
         setCourseDetail(lessonRes.data);
 
+        // 2. Exam ma'lumotlarini olish — lesson ID bo'yicha (10)
         if (lessonRes.data.exam !== null && lessonRes.data.exam !== undefined) {
           try {
-            const examRes = await client.get(`/education/exam/detail/${lessonId}/`);
+            const examRes = await client.get(`/education/exam/detail/${lessonId}/`); // lesson ID = 10
             setExamDetail(examRes.data);
           } catch (examErr) {
             console.error("Imtihon ma'lumotlari yuklanmadi:", examErr);
@@ -100,6 +102,7 @@ const TopicDetailPage: React.FC = () => {
     fetchData();
   }, [lessonId]);
 
+  // Tab avto tanlash
   useEffect(() => {
     if (!courseDetail) return;
 
@@ -128,13 +131,27 @@ const TopicDetailPage: React.FC = () => {
   const hasLessonContent = hasVideo || hasHomework || hasSource;
   const hasExam = !!courseDetail.exam && !!examDetail;
 
-  const examIdForUpload = lessonId;
+  // Javob yuklash uchun lesson ID ni ishlatamiz (exam ID emas!)
+  const examIdForUpload = lessonId; // 10
 
-
+  // Hech qanday material bo'lmasa
+  if (!hasLessonContent && !hasExam) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center p-10 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+          <h2 className="text-3xl font-bold mb-6">{t.title}: {courseDetail.unit}</h2>
+          <p className="text-xl text-gray-600 dark:text-gray-400">{t.noContent}</p>
+          <button onClick={() => window.history.back()} className="mt-8 px-6 py-3 bg-gray-300 hover:bg-gray-400 rounded-lg">
+            ← Orqaga
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="flex items-center justify-between px-6 py-5 bg-white dark:bg-gray-800 shadow-md">
+    <div className="w-full overflow-y-scroll">
+      <div className="flex items-center justify-between px-6 py-5">
         <button onClick={() => window.history.back()} className="p-3 rounded-lg bg-gray-200 hover:bg-gray-300">
           <i className="fa-solid fa-arrow-left text-xl"></i>
         </button>
@@ -146,15 +163,30 @@ const TopicDetailPage: React.FC = () => {
         <div className="w-12" />
       </div>
 
-      <div className="max-w-5xl mx-auto mt-8">
+      <div className="max-w-5xl mx-auto ">
         <div className="flex border-b border-gray-300 dark:border-gray-600">
           {hasLessonContent && (
-            <button onClick={() => setActiveTab("lesson")} className={`px-8 py-4 font-semibold text-lg transition ${activeTab === "lesson" ? "border-b-4 border-blue-600 text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-400 hover:text-gray-900"}`}>
+            <button
+              onClick={() => setActiveTab("lesson")}
+              className={`px-8 py-4 font-semibold text-lg transition ${
+                activeTab === "lesson"
+                  ? "border-b-4 border-blue-600 text-blue-600 dark:text-blue-400"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
+              }`}
+            >
               {t.lessonTab}
             </button>
           )}
+
           {hasExam && (
-            <button onClick={() => setActiveTab("exam")} className={`px-8 py-4 font-semibold text-lg transition ${activeTab === "exam" ? "border-b-4 border-green-600 text-green-600 dark:text-green-400" : "text-gray-600 dark:text-gray-400 hover:text-gray-900"}`}>
+            <button
+              onClick={() => setActiveTab("exam")}
+              className={`px-8 py-4 font-semibold text-lg transition ${
+                activeTab === "exam"
+                  ? "border-b-4 border-green-600 text-green-600 dark:text-green-400"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
+              }`}
+            >
               {t.examTab}
             </button>
           )}
@@ -166,7 +198,10 @@ const TopicDetailPage: React.FC = () => {
               {hasVideo && (
                 <div className="flex justify-center">
                   <div className="w-full md:w-10/12 lg:w-8/12">
-                    <VideoComponent videoData={courseDetail.video!.file} videoClass="rounded-xl w-full max-h-[500px] object-contain shadow-2xl" />
+                    <VideoComponent
+                      videoData={courseDetail.video!.file}
+                      videoClass="rounded-xl w-full max-h-[500px] object-contain shadow-2xl"
+                    />
                   </div>
                 </div>
               )}
@@ -176,14 +211,19 @@ const TopicDetailPage: React.FC = () => {
                   <h2 className="text-2xl mb-6 font-bold">{t.additionalInfo}</h2>
 
                   {hasHomework && courseDetail.homework && (
-                    <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl space-y-4 mb-8">
+                    <div className="bg-gray-50 dark:bg-gray-700  rounded-xl space-y-4 ">
                       {courseDetail.homework.description && (
                         <p className="text-lg leading-relaxed text-gray-800 dark:text-gray-200">
                           {courseDetail.homework.description}
                         </p>
                       )}
                       {courseDetail.homework.file && (
-                        <a href={courseDetail.homework.file} target="_blank" rel="noopener noreferrer" className="block text-blue-600 dark:text-blue-400 hover:underline break-all text-lg">
+                        <a
+                          href={courseDetail.homework.file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block text-blue-600 dark:text-blue-400 hover:underline break-all text-lg"
+                        >
                           {courseDetail.homework.file}
                         </a>
                       )}
@@ -193,9 +233,14 @@ const TopicDetailPage: React.FC = () => {
                   {hasSource && (
                     <div className="grid gap-6">
                       {courseDetail.source.map((s) => (
-                        <div key={s.id} className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl">
+                        <div key={s.id} className="bg-gray-50 dark:bg-gray-700 rounded-xl">
                           {s.description && <p className="mb-3 text-gray-800 dark:text-gray-200">{s.description}</p>}
-                          <a href={s.file} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline break-all text-lg">
+                          <a
+                            href={s.file}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 dark:text-blue-400 hover:underline break-all text-lg"
+                          >
                             {s.file}
                           </a>
                         </div>
@@ -210,7 +255,7 @@ const TopicDetailPage: React.FC = () => {
           {activeTab === "exam" && hasExam && examDetail && (
             <ExamTabContent
               examData={examDetail}
-              examId={examIdForUpload}  // lessonId = 10 → backend shuni kutmoqda!
+              examId={lessonId}  
             />
           )}
         </div>
