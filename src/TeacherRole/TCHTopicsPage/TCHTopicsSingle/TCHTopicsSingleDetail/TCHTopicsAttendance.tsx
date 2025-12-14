@@ -159,12 +159,13 @@ const TCHTopicsAttendance = () => {
   const answerRequest = (accepted: boolean) => {
     if (!ws || !pendingRequest) return;
 
-    ws.send(
-      JSON.stringify({
-        student_id: pendingRequest.student_id,
-        status: accepted,
-      })
-    );
+    if (accepted)
+      ws.send(
+        JSON.stringify({
+          student_id: pendingRequest.student_id,
+          status: accepted,
+        })
+      );
 
     toast.success(
       accepted
