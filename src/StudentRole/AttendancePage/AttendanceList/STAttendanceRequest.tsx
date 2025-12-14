@@ -1,7 +1,9 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { GlobalContext } from "../../../App.tsx";
 import { Langs } from "../../../enums.ts";
+import client, { DOMAIN_NAME } from "../../../components/services";
 
 const translations = {
   [Langs.UZ]: {
@@ -15,6 +17,7 @@ const translations = {
     requestSent: "So'rov yuborildi!",
     waitingTeacher: "O'qituvchi tasdiqlashini kuting...",
     or: "yoki",
+    accepted: "Qabul qilindi",
   },
   [Langs.RU]: {
     title: "Вход на посещаемость",
@@ -27,6 +30,7 @@ const translations = {
     requestSent: "Запрос отправлен!",
     waitingTeacher: "Дождитесь подтверждения учителя...",
     or: "или",
+    accepted: "Принято",
   },
   [Langs.EN]: {
     title: "Join Attendance",
@@ -39,15 +43,45 @@ const translations = {
     requestSent: "Request sent!",
     waitingTeacher: "Wait for teacher confirmation...",
     or: "or",
+    accepted: "Accepted",
   },
 };
 
 const STAttendanceRequest = () => {
+  const { id } = useParams<{ id: string }>();
   const { lang } = useContext(GlobalContext);
   const t = translations[lang];
 
   const [detail, setDetail] = useState("");
   const [isSent, setIsSent] = useState(false);
+  const [ws, setWs] = useState<WebSocket | null>(null);
+
+  const connectWebSocket = (lessonId: number) => {
+    const token = localStorage.getItem("token");
+    const wsUrl = `wss://${DOMAIN_NAME}/ws/attendance/${lessonId}/${token}/`;
+    const socket = new WebSocket(wsUrl);
+    setWs(socket);
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.status) {
+        toast.success(t.accepted);
+      }
+    };
+  }
+
+  useEffect(() => {
+    (async() => {
+      try {
+        const res = await client.get(`education/todays-lesson/${id}/`);
+        connectWebSocket(res.data.id);
+      } catch (err: any) {
+        toast.error(err.response?.data?.detail);
+      }
+    })()
+    return () => {
+      ws?.close();
+    };
+  }, [ws]);
 
   const sendRequest = () => {
     if (!detail.trim()) {
@@ -60,6 +94,7 @@ const STAttendanceRequest = () => {
       );
       return;
     }
+    ws?.send(JSON.stringify({"status": false, "detail": detail}));
     setIsSent(true);
     toast.success(t.requestSent);
   };
