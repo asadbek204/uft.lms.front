@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, {useEffect, useState} from 'react';
 import { useParams} from 'react-router-dom';
 import * as XLSX from 'xlsx';
@@ -84,39 +83,43 @@ const TCHGroupList: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
 
 
-    useEffect(() => {
-        (async () => {
-            await client.get(`students/by_group/list/${id}/`)
-                .then(response => {
-                    const activeStudents = response.data.filter((student: any) => student.status === 'active');
-                    setStudents(activeStudents);
-                    if (activeStudents.length > 0) {
-                        setGroupData(activeStudents[0].groups.name);
-                    }
-                    setLoading(false);
-                    console.log(response);
-                })
-                .catch(error => {
-                    console.error(error);
-                    setLoading(false);
-                });
-        })();
-    
-        (async () => {
-            const response = await client.get(`students/payment/teachers/group/${id}/`);
-            if (response.data instanceof Array) {
-                const data: DebtInfo[] = response.data.map((value) => (
-                    {
-                        debt: value.total_debt,
-                        payment: value.total_payment,
-                        student: value.student.id
-                    }
-                ));
-                setDebtData(data);
-                setLoading(false);
-            }
-        })();
-    }, []);
+  useEffect(() => {
+  (async () => {
+    setLoading(true); 
+
+    try {
+      const studentsResponse = await client.get(`students/by_group/list/${id}/`);
+      const allStudents = studentsResponse.data; 
+
+      setStudents(allStudents);
+
+      if (allStudents.length > 0) {
+        setGroupData(allStudents[0].groups.name);
+      }
+
+      console.log(studentsResponse, 'by group - all students');
+    } catch (error) {
+      console.error("Talabalar yuklanmadi:", error);
+    }
+
+    try {
+      const paymentResponse = await client.get(`students/payment/teachers/group/${id}/`);
+      
+      if (Array.isArray(paymentResponse.data)) {
+        const data: DebtInfo[] = paymentResponse.data.map((value: any) => ({
+          debt: value.total_debt || 0,
+          payment: value.total_payment || 0,
+          student: value.student.id
+        }));
+        setDebtData(data);
+      }
+    } catch (error) {
+      console.error("Qarzdorlik ma'lumotlari yuklanmadi:", error);
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, [id]); 
     
 
 

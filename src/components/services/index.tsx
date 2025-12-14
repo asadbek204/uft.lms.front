@@ -1,7 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
 import { Roles } from "../../enums.ts";
 
-// Set up CSRF tokens and credentials
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 axios.defaults.withXSRFToken = true;
 axios.defaults.xsrfCookieName = 'csrftoken';
@@ -21,16 +20,21 @@ interface CustomAxiosRequestConfig extends AxiosRequestConfig {
 }
 
 client.interceptors.request.use(
-    (config) => {
-        const token = window.localStorage.getItem('token');
-        if (token && config.headers) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error: AxiosError) => {
-        return Promise.reject(error);
+  (config) => {
+    const token = window.localStorage.getItem('token');
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
+
+    return config;
+  },
+  (error: AxiosError) => {
+    return Promise.reject(error);
+  }
 );
 
 client.interceptors.response.use(
@@ -38,12 +42,10 @@ client.interceptors.response.use(
     async (error: AxiosError) => {
       const originalRequest = error.config as CustomAxiosRequestConfig;
 
-      // 401 xatoligi va retry bo'lmagan bo'lsa
       if (error.response?.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
         const refreshToken = window.localStorage.getItem("refresh");
 
-        // Token yo'q bo'lsa login-ga yo'nalt
         if (!refreshToken) {
           window.localStorage.removeItem("id");
           window.localStorage.removeItem("token");
@@ -61,7 +63,6 @@ client.interceptors.response.use(
             headers: { "Content-Type": "application/json" },
           });
 
-          // Agar refresh token ham invalid bo'lsa
           if (response.status === 401 || response.status === 400) {
             console.log("Refresh token invalid");
             window.localStorage.removeItem("token");

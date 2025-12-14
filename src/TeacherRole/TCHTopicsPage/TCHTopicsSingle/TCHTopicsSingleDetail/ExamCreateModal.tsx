@@ -145,7 +145,6 @@ const ExamCreateModal: React.FC<Props> = ({ isVisible, onClose, lessonId, groupI
             </label>
             <input
               type="file"
-              accept=".pdf,.doc,.docx,.txt,.json"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
               required
               className="mt-1 w-full text-sm"

@@ -353,7 +353,7 @@ function GroupsPage() {
 
                   <div className="flex items-center gap-3">
 
-                    {item.status === "recruiting" && (
+                    {(item.status === "recruiting" || item.status === "exam") && (
                       <button
                         onClick={() => handleActivateGroup(item.id)}
                         disabled={activatingId === item.id}

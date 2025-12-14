@@ -82,35 +82,38 @@ export default function TCHAttendanceTablePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
-  useEffect(() => {
-    if (!id) return;
+useEffect(() => {
+  if (!id) return;
 
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [attRes, stuRes, groupRes, lessonRes] = await Promise.all([
-          client.get(`education/attendance/?group=${id}`),
-          client.get(`students/by_group/list/${id}`),
-          client.get(`education/group/detail/${id}`),
-          client.get(`education/lessons/?group=${id}&month=${currentMonth.format("YYYY-MM")}`),
-        ]);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const monthParam = currentMonth.format("YYYY-MM");
+      console.log("Fetching lessons for month:", monthParam); // ← Muhim log
 
-  
+      const [attRes, stuRes, groupRes, lessonRes] = await Promise.all([
+        client.get(`education/attendance/?group=${id}`),
+        client.get(`students/by_group/list/${id}`),
+        client.get(`education/group/detail/${id}`),
+        client.get(`education/lessons/?group=${id}&month=${monthParam}`),
+      ]);
 
-        setAttendanceData(attRes.data);
-        setStudents(stuRes.data.filter((s: any) => s.status === "active"));
-        setGroupName(groupRes.data.name);
-        setLessons(lessonRes.data);
-      } catch (err) {
-        console.error("❌ Fetch error:", err);
-        toast.error(t.errorFetchingData);
-      } finally {
-        setLoading(false);
-      }
-    };
+      console.log("Lessons received:", lessonRes.data); // ← Qaysi darslar keldi?
 
-    fetchData();
-  }, [id, currentMonth, t.errorFetchingData]);
+      setAttendanceData(attRes.data || []);
+      setStudents((stuRes.data || []).filter((s: any) => s.status === "active"));
+      setGroupName(groupRes.data?.name || "");
+      setLessons(lessonRes.data || []); // ← Bu yer muhim!
+    } catch (err) {
+      console.error("Fetch error:", err);
+      toast.error(t.errorFetchingData);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, [id, currentMonth]); 
 
  const handleAttendanceSave = async (data: {
   id?: number;

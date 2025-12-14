@@ -3,189 +3,220 @@ import { useParams } from 'react-router-dom';
 import client from "../../../../../components/services";
 import { Langs } from '../../../../../enums';
 import { GlobalContext } from '../../../../../App';
-import Loading from '../../../../../components/LoadingComponent/Loading';
+import Loading from '../../../../../components/LoadingComponent/Loading.tsx';
 import VideoComponent from "../../../../../components/VideoComponent/VideoComponent.tsx";
-// import { toast } from "react-toastify";
-
-
-type TTopicsComponentContent = {
-    text: string;
-    topics: string;
-    download: string;
-    nohomework: string;
-    request: string;
-    requestToTeacher:string;
-};
-
-const contentsMap = new Map<Langs, TTopicsComponentContent>([
-    [Langs.UZ, {
-        text: "O'rganish uchun qoshimcha malumotlar:",
-        topics: "Mavzu",
-        download: "Yuklab olish",
-        nohomework: "Uyga vazifa berilmagan.",
-        request: "Davomat uchun so'rov",
-        requestToTeacher: "O'qituvchiga davomat uchun so'rov yuborildi!"
-    }],
-    [Langs.RU, {
-        text: "Дополнительная информация для изучения:",
-        topics: "Тема",
-        download: "Скачать",
-        nohomework: "Домашнее задание не задано.",
-        request: "Запрос на участие",
-        requestToTeacher: "Запрос на посещение отправлен преподавателю!"
-    }],
-    [Langs.EN, {
-        text: "Additional information to study:",
-        topics: "Topic",
-        download: "Download",
-        nohomework: "No homework assigned.",
-        request: "Request for attendance",
-        requestToTeacher: "Attendance request sent to teacher!"
-    }]
-]);
+import ExamTabContent from '../../../../../TeacherRole/TCHTopicsPage/TCHTopicsSingle/TCHTopicsSingleDetail/ExamTabContent';
 
 type THomework = {
-    id: number;
-    file: string;
-    description: string | null;
-    path: string | null;
-    main: string | null;
+  id: number;
+  file: string;
+  description?: string | null;
+  path?: string | null;
+  main?: string | null;
+};
+
+type TSource = {
+  id: number;
+  file: string;
+  description: string;
+  path?: string | null;
+  main?: string | null;
 };
 
 type TCourseDetail = {
+  id: number;
+  group: { id: number; name: string; schedule: any[]; status: boolean };
+  date: string;
+  unit: string;
+  homework: THomework | null;
+  exam: number | string | null; 
+  source: TSource[];
+  video: {
     id: number;
-    group: {
-        id: number;
-        name: string;
-        schedule: {
-            id: number;
-            day: string;
-            starts_at: string;
-            ends_at: string;
-        }[];
-        status: boolean;
-    };
-    date: string;
-    unit: string;
-    homework: THomework | null;
-    exam: string | null;
-    source: {
-        id: number;
-        file: string;
-        description: string;
-        path: string | null;
-        main: string | null;
-    }[];
-    video: {
-        id: number;
-        file: string;
-        description: string | null;
-        path: string | null;
-        main: string | null;
-    } | null;
+    file: string;
+    description?: string | null;
+    path?: string | null;
+    main?: string | null;
+  } | null;
 };
 
-const defaultData: TCourseDetail = {
-    id: 0,
-    group: {
-        id: 0,
-        name: "",
-        schedule: [],
-        status: false,
-    },
-    date: "",
-    unit: "",
-    homework: null,
-    exam: null,
-    source: [],
-    video: null,
+type TExamDetail = {
+  id: number;
+  exam: { questions: string };
+  unit: string;
+  date: string;
 };
+
+const contentsMap = new Map<Langs, any>([
+  [Langs.UZ, { title: "Mavzu", noContent: "Bu dars uchun hech qanday material yuklanmagan.", additionalInfo: "Qo‘shimcha materiallar", lessonTab: "Dars materiallari", examTab: "Imtihon" }],
+  [Langs.RU, { title: "Тема", noContent: "Для этого урока не загружено никаких материалов.", additionalInfo: "Дополнительные материалы", lessonTab: "Материалы урока", examTab: "Экзамен" }],
+  [Langs.EN, { title: "Topic", noContent: "No materials have been uploaded for this lesson.", additionalInfo: "Additional materials", lessonTab: "Lesson Materials", examTab: "Exam" }],
+]);
 
 const TopicDetailPage: React.FC = () => {
-    const { lang } = useContext(GlobalContext);
-    const contents = contentsMap.get(lang) as TTopicsComponentContent;
-    const { courseId } = useParams<{ courseId: string }>();
-    const [courseDetail, setCourseDetail] = useState<TCourseDetail>(defaultData);
+  const { lang } = useContext(GlobalContext);
+  const t = contentsMap.get(lang)!;
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const response = await client.get(`education/lessons/${courseId}/`);
-                setCourseDetail(response.data as TCourseDetail);
-            } catch (error) {
-                console.error("Failed to fetch course details", error);
-            }
-        })();
-    }, [courseId]);
+  const { courseId } = useParams<{ courseId: string }>();
 
-    if (!courseDetail) {
-        return <div><Loading /></div>;
+  if (!courseId) {
+    return <div className="text-center py-20 text-3xl text-red-600">Dars ID topilmadi!</div>;
+  }
+
+  const lessonId = Number(courseId);
+
+  if (isNaN(lessonId)) {
+    return <div className="text-center py-20 text-3xl text-red-600">Noto'g'ri ID: {courseId}</div>;
+  }
+
+  const [courseDetail, setCourseDetail] = useState<TCourseDetail | null>(null);
+  const [examDetail, setExamDetail] = useState<TExamDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"lesson" | "exam">("lesson");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        const lessonRes = await client.get(`/education/lessons/${lessonId}/`);
+        setCourseDetail(lessonRes.data);
+
+        if (lessonRes.data.exam !== null && lessonRes.data.exam !== undefined) {
+          try {
+            const examRes = await client.get(`/education/exam/detail/${lessonId}/`);
+            setExamDetail(examRes.data);
+          } catch (examErr) {
+            console.error("Imtihon ma'lumotlari yuklanmadi:", examErr);
+          }
+        }
+      } catch (err) {
+        console.error("Dars ma'lumotlari yuklanmadi:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [lessonId]);
+
+  useEffect(() => {
+    if (!courseDetail) return;
+
+    const hasVideo = !!courseDetail.video;
+    const hasHomework = !!courseDetail.homework;
+    const hasSource = courseDetail.source.length > 0;
+    const hasLessonContent = hasVideo || hasHomework || hasSource;
+    const hasExam = !!courseDetail.exam && !!examDetail;
+
+    if (!hasLessonContent && hasExam) {
+      setActiveTab("exam");
+    } else if (hasLessonContent) {
+      setActiveTab("lesson");
     }
+  }, [courseDetail, examDetail]);
+
+  if (loading) return <Loading />;
+
+  if (!courseDetail) {
+    return <div className="text-center py-20 text-red-500">Dars topilmadi</div>;
+  }
+
+  const hasVideo = !!courseDetail.video;
+  const hasHomework = !!courseDetail.homework;
+  const hasSource = courseDetail.source.length > 0;
+  const hasLessonContent = hasVideo || hasHomework || hasSource;
+  const hasExam = !!courseDetail.exam && !!examDetail;
+
+  const examIdForUpload = lessonId;
 
 
-    // const handleAttendanceRequest = () => {
-    //     toast.success(contents.requestToTeacher);
-    //   };
 
-    return (
-        <div className="w-full">
-            <div className="mx-5 my-5 mb-5 justify-between items-center text-center flex gap-2">
-                <button onClick={() => window.history.back()}
-                    className='w-12 h-12 my-3 ms-5 bg-gray-200 hover:bg-gray-300 rounded'>
-                    <i className='fa-solid fa-arrow-left text-black'></i>
-                </button>
-                <div className="flex gap-4 2xl:text-4xl text-3xl font-bold dark:text-customText">
-                    <h1 className="text-4xl">{contents.topics}: <b>{courseDetail.unit}</b></h1>
-                </div>
-                {/* <button onClick={handleAttendanceRequest} className='bg-blue-500 text-white py-2 px-4 rounded mr-2 hover:bg-blue-600 transition duration-200'>
-                      {contents.request}
-                </button> */}
-                <span></span>
-            </div>
+  return (
+    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex items-center justify-between px-6 py-5 bg-white dark:bg-gray-800 shadow-md">
+        <button onClick={() => window.history.back()} className="p-3 rounded-lg bg-gray-200 hover:bg-gray-300">
+          <i className="fa-solid fa-arrow-left text-xl"></i>
+        </button>
 
-          <div className="2xl:h-[88%] h-[75%] px-4 md:px-10 py-4 overflow-hidden">
-  <div className="h-full overflow-y-auto space-y-8 pb-10">
+        <h1 className="text-2xl md:text-3xl font-bold dark:text-white">
+          {t.title}: <span className="text-blue-600 dark:text-blue-400">{courseDetail.unit}</span>
+        </h1>
 
-    {/* Video Section */}
-    {courseDetail.video?.file ? (
-      <div className="flex justify-center">
-        <div className="w-full md:w-9/12 lg:w-7/12">
-          <VideoComponent
-            videoData={courseDetail.video.file}
-            videoClass="rounded-xl w-full max-h-[420px] md:max-h-[500px] object-contain"
-          />
-        </div>
+        <div className="w-12" />
       </div>
-    ) : (
-      <p className="text-2xl text-center">{contents.nohomework}</p>
-    )}
 
-    {/* Additional Info */}
-    <div className="mt-4">
-      <h1 className="text-2xl mb-4">{contents.text}</h1>
+      <div className="max-w-5xl mx-auto mt-8">
+        <div className="flex border-b border-gray-300 dark:border-gray-600">
+          {hasLessonContent && (
+            <button onClick={() => setActiveTab("lesson")} className={`px-8 py-4 font-semibold text-lg transition ${activeTab === "lesson" ? "border-b-4 border-blue-600 text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-400 hover:text-gray-900"}`}>
+              {t.lessonTab}
+            </button>
+          )}
+          {hasExam && (
+            <button onClick={() => setActiveTab("exam")} className={`px-8 py-4 font-semibold text-lg transition ${activeTab === "exam" ? "border-b-4 border-green-600 text-green-600 dark:text-green-400" : "text-gray-600 dark:text-gray-400 hover:text-gray-900"}`}>
+              {t.examTab}
+            </button>
+          )}
+        </div>
 
-      <div className="space-y-3">
-        {courseDetail.source.map((item) => (
-          <div key={item.id} className="border-b pb-2">
-            <p>{item.description}</p>
-            <a
-              className="text-blue-500 break-all hover:underline"
-              href={item.file}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {item.file}
-            </a>
-          </div>
-        ))}
+        <div className="p-6 min-h-[60vh]">
+          {activeTab === "lesson" && hasLessonContent && (
+            <div className="space-y-10">
+              {hasVideo && (
+                <div className="flex justify-center">
+                  <div className="w-full md:w-10/12 lg:w-8/12">
+                    <VideoComponent videoData={courseDetail.video!.file} videoClass="rounded-xl w-full max-h-[500px] object-contain shadow-2xl" />
+                  </div>
+                </div>
+              )}
+
+              {(hasHomework || hasSource) && (
+                <div>
+                  <h2 className="text-2xl mb-6 font-bold">{t.additionalInfo}</h2>
+
+                  {hasHomework && courseDetail.homework && (
+                    <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl space-y-4 mb-8">
+                      {courseDetail.homework.description && (
+                        <p className="text-lg leading-relaxed text-gray-800 dark:text-gray-200">
+                          {courseDetail.homework.description}
+                        </p>
+                      )}
+                      {courseDetail.homework.file && (
+                        <a href={courseDetail.homework.file} target="_blank" rel="noopener noreferrer" className="block text-blue-600 dark:text-blue-400 hover:underline break-all text-lg">
+                          {courseDetail.homework.file}
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {hasSource && (
+                    <div className="grid gap-6">
+                      {courseDetail.source.map((s) => (
+                        <div key={s.id} className="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl">
+                          {s.description && <p className="mb-3 text-gray-800 dark:text-gray-200">{s.description}</p>}
+                          <a href={s.file} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline break-all text-lg">
+                            {s.file}
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "exam" && hasExam && examDetail && (
+            <ExamTabContent
+              examData={examDetail}
+              examId={examIdForUpload}  // lessonId = 10 → backend shuni kutmoqda!
+            />
+          )}
+        </div>
       </div>
     </div>
-
-  </div>
-</div>
-
-        </div>
-    );
-}
+  );
+};
 
 export default TopicDetailPage;
