@@ -143,7 +143,7 @@ const STTopicsItem: React.FC = () => {
                         {course.unit}
                       </Link>
                     </td>
-                    <td className="border text-center border-slate-200 p-2">
+                    <td className="border text-center text-gray-700 dark:text-gray-300 border-slate-200 p-2">
                       {formatDate(course.date)}
                     </td>
                   </tr>

@@ -290,10 +290,13 @@ function SideBar({ pages, setLang, setPage }: TSideBarProperties) {
             }`}
           >
             <img
-              src={`https://ui-avatars.com/api/?name=${user.first_name}&background=000000&bold=true&color=fff`}
-              alt=""
+              src={`https://ui-avatars.com/api/?name=${
+                user?.first_name?.charAt(0) || "U"
+              }&background=000000&bold=true&color=fff`}
+              alt="avatar"
               className="w-10 h-10 rounded-md"
             />
+
             <div
               className={`flex justify-between items-center overflow-hidden transition-all ${
                 expanded ? "w-56 ml-3" : "w-0"

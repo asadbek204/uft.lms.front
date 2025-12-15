@@ -85,35 +85,40 @@ export default function TCHAttendanceTablePage() {
 useEffect(() => {
   if (!id) return;
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const monthParam = currentMonth.format("YYYY-MM");
-      console.log("Fetching lessons for month:", monthParam); // ← Muhim log
+ const fetchData = async () => {
+  setLoading(true);
+  try {
+    const monthParam = currentMonth.format("YYYY-MM");
 
-      const [attRes, stuRes, groupRes, lessonRes] = await Promise.all([
-        client.get(`education/attendance/?group=${id}`),
-        client.get(`students/by_group/list/${id}`),
-        client.get(`education/group/detail/${id}`),
-        client.get(`education/lessons/?group=${id}&month=${monthParam}`),
-      ]);
+    const [attRes, stuRes, groupRes, lessonRes] = await Promise.all([
+      client.get(`education/attendance/?group=${id}`),
+      client.get(`students/by_group/list/${id}`),
+      client.get(`education/group/detail/${id}`),
+      client.get(`education/lessons/?group=${id}&month=${monthParam}`),
+    ]);
 
-      console.log("Lessons received:", lessonRes.data); // ← Qaysi darslar keldi?
 
-      setAttendanceData(attRes.data || []);
-      setStudents((stuRes.data || []).filter((s: any) => s.status === "active"));
-      setGroupName(groupRes.data?.name || "");
-      setLessons(lessonRes.data || []); // ← Bu yer muhim!
-    } catch (err) {
-      console.error("Fetch error:", err);
-      toast.error(t.errorFetchingData);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setAttendanceData(attRes.data || []);
+    
+    setStudents(
+      (stuRes.data || []).filter((s: any) => 
+        s.status === "active" || s.status === "pending"
+      )
+    );
+    
+    setGroupName(groupRes.data?.name || "");
+    setLessons(lessonRes.data || []);
+  } catch (err) {
+    console.error("Fetch error:", err);
+    toast.error(t.errorFetchingData);
+  } finally {
+    setLoading(false);
+  }
+};
 
   fetchData();
 }, [id, currentMonth]); 
+
 
  const handleAttendanceSave = async (data: {
   id?: number;
@@ -174,6 +179,7 @@ useEffect(() => {
       return fullName.includes(searchTerm.toLowerCase());
     });
   }, [students, searchTerm]);
+
 
   const lessonDates = useMemo(() => {
     return lessons
@@ -268,40 +274,40 @@ useEffect(() => {
 
   return (
     <div className="w-full px-4 mt-12 md:mt-0 ">
-        <AttendanceHeader
-          groupName={groupName}
-          title={t.title}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          showSearch={showSearch}
-          setShowSearch={setShowSearch}
-          onDownload={downloadXLS}
-          searchPlaceholder={t.searchPlaceholder}
-        />
+      <AttendanceHeader
+        groupName={groupName}
+        title={t.title}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        showSearch={showSearch}
+        setShowSearch={setShowSearch}
+        onDownload={downloadXLS}
+        searchPlaceholder={t.searchPlaceholder}
+      />
 
-        <AttendanceCalendarControls
+      <AttendanceCalendarControls
+        currentMonth={currentMonth}
+        onPrev={() => setCurrentMonth((m) => m.subtract(1, "month"))}
+        onNext={() => setCurrentMonth((m) => m.add(1, "month"))}
+        onToday={() => setCurrentMonth(dayjs())}
+        monthName={getMonthName(currentMonth.month(), lang)}
+        year={currentMonth.year()}
+      />
+
+      <div className="mt-6">
+        <AttendanceTableBody
+          students={filteredStudents}
+          attendanceData={attendanceData}
+          lessons={lessons}
           currentMonth={currentMonth}
-          onPrev={() => setCurrentMonth((m) => m.subtract(1, "month"))}
-          onNext={() => setCurrentMonth((m) => m.add(1, "month"))}
-          onToday={() => setCurrentMonth(dayjs())}
-          monthName={getMonthName(currentMonth.month(), lang)}
-          year={currentMonth.year()}
+          searchTerm={searchTerm}
+          onSave={handleAttendanceSave}
+          tableHeading={t.tableHeading}
+          noStudents={t.noStudents}
+          noStudentsMatch={t.noStudentsMatch}
+          lang={lang === Langs.UZ ? "uz" : lang === Langs.RU ? "ru" : "en"}
         />
-
-        <div className="mt-6">
-          <AttendanceTableBody
-            students={students}
-            attendanceData={attendanceData}
-            lessons={lessons}
-            currentMonth={currentMonth}
-            searchTerm={searchTerm}
-            onSave={handleAttendanceSave}
-            tableHeading={t.tableHeading}
-            noStudents={t.noStudents}
-            noStudentsMatch={t.noStudentsMatch}
-            lang={lang === Langs.UZ ? "uz" : lang === Langs.RU ? "ru" : "en"}
-          />
-        </div>
+      </div>
     </div>
   );
 }

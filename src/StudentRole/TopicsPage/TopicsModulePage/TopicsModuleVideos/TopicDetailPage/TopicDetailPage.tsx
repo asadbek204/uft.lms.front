@@ -79,11 +79,9 @@ const TopicDetailPage: React.FC = () => {
       try {
         setLoading(true);
 
-        // 1. Dars ma'lumotlarini olish
         const lessonRes = await client.get(`/education/lessons/${lessonId}/`);
         setCourseDetail(lessonRes.data);
 
-        // 2. Exam ma'lumotlarini olish — lesson ID bo'yicha (10)
         if (lessonRes.data.exam !== null && lessonRes.data.exam !== undefined) {
           try {
             const examRes = await client.get(`/education/exam/detail/${lessonId}/`); // lesson ID = 10
@@ -102,7 +100,6 @@ const TopicDetailPage: React.FC = () => {
     fetchData();
   }, [lessonId]);
 
-  // Tab avto tanlash
   useEffect(() => {
     if (!courseDetail) return;
 
@@ -131,22 +128,6 @@ const TopicDetailPage: React.FC = () => {
   const hasLessonContent = hasVideo || hasHomework || hasSource;
   const hasExam = !!courseDetail.exam && !!examDetail;
 
-  // Javob yuklash uchun lesson ID ni ishlatamiz (exam ID emas!)
-
-  // Hech qanday material bo'lmasa
-  if (!hasLessonContent && !hasExam) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center p-10 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-          <h2 className="text-3xl font-bold mb-6">{t.title}: {courseDetail.unit}</h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400">{t.noContent}</p>
-          <button onClick={() => window.history.back()} className="mt-8 px-6 py-3 bg-gray-300 hover:bg-gray-400 rounded-lg">
-            ← Orqaga
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full overflow-y-scroll">
@@ -254,7 +235,8 @@ const TopicDetailPage: React.FC = () => {
           {activeTab === "exam" && hasExam && examDetail && (
             <ExamTabContent
               examData={examDetail}
-              examId={lessonId}  
+             examId={courseDetail.exam as number} 
+             groupId={courseDetail.group.id}
             />
           )}
         </div>

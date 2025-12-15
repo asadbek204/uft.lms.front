@@ -237,7 +237,7 @@ useEffect(() => {
 
                 {(courseDetail.homework || courseDetail.source.length > 0) && (
                   <div>
-                    <h2 className="text-2xl mb-6 font-bold">
+                    <h2 className="text-2xl text-gray-700 dark:text-gray-300 mb-6 font-bold">
                       {t.additionalInfo}
                     </h2>
 
@@ -293,7 +293,7 @@ useEffect(() => {
           )}
 
           {activeTab === "exam" && hasExam && (
-            <ExamTabContent examData={examDetail} examId={0} />
+            <ExamTabContent examData={examDetail} examId={0} groupId={courseDetail?.group?.id || 0} />
           )}
         </div>
       </div>
