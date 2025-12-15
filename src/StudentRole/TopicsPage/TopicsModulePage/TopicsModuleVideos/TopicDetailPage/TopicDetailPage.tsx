@@ -132,7 +132,6 @@ const TopicDetailPage: React.FC = () => {
   const hasExam = !!courseDetail.exam && !!examDetail;
 
   // Javob yuklash uchun lesson ID ni ishlatamiz (exam ID emas!)
-  const examIdForUpload = lessonId; // 10
 
   // Hech qanday material bo'lmasa
   if (!hasLessonContent && !hasExam) {
