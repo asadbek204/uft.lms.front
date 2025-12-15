@@ -20,7 +20,7 @@ const FamilyInfoSection: React.FC<Props> = ({ contents }) => {
           {contents.father_info || "Ota ma'lumotlari"}
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 dark-form">
           <Form.Item
             name={["father", "first_name"]}
             label={<span className="font-medium">{contents.first_name}</span>}
@@ -109,7 +109,7 @@ const FamilyInfoSection: React.FC<Props> = ({ contents }) => {
           {contents.mother_info || "Ona ma'lumotlari"}
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 dark-form">
           <Form.Item
             name={["mother", "first_name"]}
             rules={[{ required: false, message: contents.required }]}

@@ -2,11 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/*css selector*/
 :root {
     --bg-light: #e9e9e9;
     --bg-dark: rgb(17 24 39);
@@ -240,4 +235,96 @@ html.dark {
 
 [data-swapy-highlighted] {
     background: #d7d7d7;
+}
+
+
+
+/* ===== Ant Design Dark Mode Overrides ===== */
+
+.dark .dark-form .ant-form-item-label > label,
+.dark .dark-form .ant-form-item-label span {
+  color: #d1d5db; /* gray-300 */
+}
+
+/* INPUT / PASSWORD / MASK */
+.dark .dark-form .ant-input,
+.dark .dark-form .ant-input-password,
+.dark .dark-form .ant-input-affix-wrapper {
+  background-color: #1f2937; /* gray-800 */
+  color: #f9fafb; /* gray-50 */
+  border-color: #4b5563; /* gray-600 */
+}
+
+.dark .dark-form .ant-input::placeholder {
+  color: #6b7280; /* gray-500 */
+}
+
+.dark .dark-form .ant-select-selector {
+  background-color: #1f2937;
+  color: #f9fafb;
+  border-color: #4b5563;
+}
+
+.dark .dark-form .ant-select-arrow {
+  color: #9ca3af; 
+}
+
+.dark .dark-form .ant-picker {
+  background-color: #1f2937;
+  color: #f9fafb;
+  border-color: #4b5563;
+}
+
+.dark .dark-form .ant-picker-input > input {
+  color: #f9fafb;
+}
+
+.dark .dark-form .ant-input-number {
+  background-color: #1f2937;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark .dark-form .ant-input-number-input {
+  color: #f9fafb;
+}
+
+.dark .dark-form .ant-input-group-addon {
+  background-color: #111827; 
+  color: #e5e7eb;
+  border-color: #4b5563;
+}
+
+.dark .dark-form .ant-input:focus,
+.dark .dark-form .ant-select-focused .ant-select-selector,
+.dark .dark-form .ant-picker-focused,
+.dark .dark-form .ant-input-number-focused {
+  border-color: #60a5fa; 
+  box-shadow: none;
+}
+
+.dark .dark-form .ant-form-item-explain-error {
+  color: #f87171; 
+}
+
+
+.dark .custom-tabs .ant-tabs-tab {
+  color: #d1d5db; 
+}
+
+.dark .custom-tabs .ant-tabs-tab:hover {
+  color: #ffffff;
+}
+
+.dark .custom-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.dark .custom-tabs .ant-tabs-ink-bar {
+  background-color: #ffffff;
+}
+
+.dark .custom-tabs .ant-tabs-nav::before {
+  border-bottom: 1px solid #374151; 
 }

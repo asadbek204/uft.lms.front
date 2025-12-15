@@ -274,7 +274,7 @@ function StudentsForm() {
             <Form className='w-full 2xl:h-[87%] h-[65%] overflow-y-auto' layout="vertical" size="large" form={form} onFinish={onFinish}>
                 {/* Contract Maker Information */}
                 <h3 className="text-2xl font-medium mb-4">{contents.contract_maker}</h3>
-                <div className="md:grid grid-cols-4 gap-x-[30px] gap-y-[10px] mb-6">
+                <div className="md:grid grid-cols-4 gap-x-[30px] gap-y-[10px] mb-6 dark-form">
                     <Form.Item label={contents.last_name} name="last_name" rules={[{ required: false, message: contents.required }]}>
                         <Input />
                     </Form.Item>
@@ -339,8 +339,8 @@ function StudentsForm() {
                 </div>
 
                 {/* Student Information */}
-                <h3 className="text-2xl font-medium mb-4">{contents.student}</h3>
-                <div className="md:grid grid-cols-3 gap-x-[30px] gap-y-[10px] mb-4">
+                <h3 className="text-2xl font-medium mb-4 ">{contents.student}</h3>
+                <div className="md:grid grid-cols-3 gap-x-[30px] gap-y-[10px] mb-4 dark-form">
                     <Form.Item label={contents.last_name} name={['student', 'last_name']} rules={[{ required: false, message: contents.required }]}>
                         <Input />
                     </Form.Item>

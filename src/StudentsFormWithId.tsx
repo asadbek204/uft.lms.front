@@ -383,7 +383,7 @@ function StudentsForm() {
         onFinish={onFinish}
       >
         <h3 className="text-2xl font-medium mb-4 dark:text-white">{contents.contract_maker}</h3>
-        <div className="md:grid grid-cols-4 gap-x-[30px] gap-y-[10px] mb-6">
+        <div className="md:grid grid-cols-4 gap-x-[30px] gap-y-[10px] mb-6 dark-form">
           <Form.Item
             label={contents.last_name}
             name="last_name"
@@ -472,7 +472,7 @@ function StudentsForm() {
         </div>
 
         <h3 className="text-2xl font-medium mb-4 dark:text-white">{contents.student}</h3>
-        <div className="md:grid grid-cols-3 gap-x-[30px] gap-y-[10px] mb-4">
+        <div className="md:grid grid-cols-3 gap-x-[30px] gap-y-[10px] mb-4 dark-form">
           <Form.Item
             label={contents.last_name}
             name={["student", "last_name"]}

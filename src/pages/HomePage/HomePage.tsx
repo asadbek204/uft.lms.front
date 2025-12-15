@@ -82,7 +82,7 @@ const SLOT_KEYS = ["1", "2", "3", "4"];
 const TodayCard: React.FC<{ date: string; title: string }> = ({ date, title }) => (
   <div data-swapy-item="a" className="h-full rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-8 flex flex-col justify-between shadow-2xl">
     <h3 className="text-xl font-medium opacity-90">{title}</h3>
-    <p className="text-3xl lg:text-[45px] font-extrabold">{date}</p>
+    <p className="text-3xl lg:text-[40px] font-extrabold">{date}</p>
   </div>
 );
 

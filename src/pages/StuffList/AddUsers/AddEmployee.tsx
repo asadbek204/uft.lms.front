@@ -258,7 +258,7 @@ const AddEmployee: React.FC = () => {
         autoComplete="off"
         preserve={false}
       >
-        <div className="md:grid grid-cols-2 gap-x-[30px] gap-y-[10px] mb-8">
+        <div className="md:grid grid-cols-2 gap-x-[30px] gap-y-[10px] mb-8 dark-form">
           <Form.Item label={contents.label2} name="first_name" rules={[{ required: true, message: contents.required }]}>
             <Input autoComplete="off" />
           </Form.Item>

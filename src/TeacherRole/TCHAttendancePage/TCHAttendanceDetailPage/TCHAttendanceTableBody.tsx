@@ -152,61 +152,72 @@ export default function AttendanceTableBody({
 
   return (
     <>
-      <div className="overflow-x-auto bg-white rounded-lg shadow-lg mt-6">
-        <table className="w-full table-auto border-collapse">
-          <thead className="bg-gradient-to-r from-blue-50 to-indigo-50">
-            <tr>
-              <th className="sticky left-0 z-10 bg-white py-4 px-6 text-left font-bold text-gray-800">
-                {tableHeading}
-              </th>
-              {dates.map((date) => (
-                <th key={date.format("DD")} className="py-4 px-3 text-center font-medium text-gray-700">
-                  {date.format("DD")}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredStudents.map((student) => (
-              <tr key={student.id} className="border-t hover:bg-gray-50 transition">
-                <td className="sticky left-0 z-10 bg-white py-4 px-6 font-medium text-gray-800">
-                  {student.user.first_name} {student.user.last_name || ""}
-                </td>
-                {dates.map((date) => {
-                  const dateStr = date.format("YYYY-MM-DD");
-                  const lesson = lessons.find((l) => dayjs(l.date).format("YYYY-MM-DD") === dateStr);
+    <div className="overflow-x-auto rounded-lg shadow-lg mt-6 bg-white dark:bg-gray-800">
+  <table className="w-full table-auto border-collapse">
+    <thead className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-800">
+      <tr>
+        <th className="sticky left-0 z-10 bg-white dark:bg-gray-800 py-4 px-6 text-left font-bold text-gray-800 dark:text-gray-200">
+          {tableHeading}
+        </th>
+        {dates.map((date) => (
+          <th
+            key={date.format("DD")}
+            className="py-4 px-3 text-center font-medium text-gray-700 dark:text-gray-300"
+          >
+            {date.format("DD")}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {filteredStudents.map((student) => (
+        <tr
+          key={student.id}
+          className="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+        >
+          <td className="sticky left-0 z-10 bg-white dark:bg-gray-800 py-4 px-6 font-medium text-gray-800 dark:text-gray-200">
+            {student.user.first_name} {student.user.last_name || ""}
+          </td>
+          {dates.map((date) => {
+            const dateStr = date.format("YYYY-MM-DD");
+            const lesson = lessons.find(
+              (l) => dayjs(l.date).format("YYYY-MM-DD") === dateStr
+            );
 
-                  const record = attendanceData.find((r: any) => {
-                    const studentId = typeof r.student === "object" ? r.student.id : r.student;
-                    const lessonId = typeof r.lesson === "object" ? r.lesson.id : r.lesson;
-                    return studentId === student.id && lesson && lessonId === lesson.id;
-                  });
+            const record = attendanceData.find((r: any) => {
+              const studentId =
+                typeof r.student === "object" ? r.student.id : r.student;
+              const lessonId =
+                typeof r.lesson === "object" ? r.lesson.id : r.lesson;
+              return studentId === student.id && lesson && lessonId === lesson.id;
+            });
 
-                  return (
-                    <td
-                      key={dateStr}
-                      onClick={() => openModal(student, date)}
-                      className="text-center py-4 px-3 cursor-pointer text-4xl font-bold hover:bg-blue-50 transition"
-                    >
-                      {record ? (
-                        record.status ? (
-                          <span className="text-green-600">+</span>
-                        ) : (
-                          <span className="text-red-600">−</span>
-                        )
-                      ) : lesson ? (
-                        <span className="text-gray-300">−</span>
-                      ) : (
-                        <span className="text-gray-200">·</span>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            return (
+              <td
+                key={dateStr}
+                onClick={() => openModal(student, date)}
+                className="text-center py-4 px-3 cursor-pointer text-4xl font-bold hover:bg-blue-50 dark:hover:bg-blue-900 transition"
+              >
+                {record ? (
+                  record.status ? (
+                    <span className="text-green-600 dark:text-green-400">+</span>
+                  ) : (
+                    <span className="text-red-600 dark:text-red-400">−</span>
+                  )
+                ) : lesson ? (
+                  <span className="text-gray-300 dark:text-gray-500">−</span>
+                ) : (
+                  <span className="text-gray-200 dark:text-gray-600">·</span>
+                )}
+              </td>
+            );
+          })}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
 
       {modalOpen && selectedStudent && selectedDate && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
@@ -220,7 +231,7 @@ export default function AttendanceTableBody({
 
             <div className="space-y-8">
               <div>
-                <label className="block text-lg font-semibold mb-5 text-center">
+                <label className="block text-white dark:text-gray-400 text-lg font-semibold mb-5 text-center">
                   {t[lang].attendanceStatus}
                 </label>
                 <div className="flex justify-center gap-12">

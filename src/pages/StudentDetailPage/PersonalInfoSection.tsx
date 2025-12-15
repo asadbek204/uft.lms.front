@@ -19,7 +19,7 @@ const PersonalInfoSection: React.FC<Props> = ({ contents }) => {
         {contents.personal_info || "Shaxsiy ma'lumotlar"}
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 dark-form">
         <Form.Item
           name="first_name"
           label={<span className="font-medium">{contents.first_name}</span>}
