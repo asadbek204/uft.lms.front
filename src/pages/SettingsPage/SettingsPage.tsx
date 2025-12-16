@@ -1,6 +1,6 @@
 import  { useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { Langs } from "../../enums";
+import { Langs, Roles } from "../../enums";
 import { GlobalContext, TGlobalContext } from "../../App";
 
 type TSettingsComponentContent = {
@@ -32,19 +32,20 @@ const contentsMap = new Map<Langs, TSettingsComponentContent>([
 ]);
 
 const SettingsPage = () => {
-    // const rolesJSON = window.localStorage.getItem('roles');
-    // const roles: string[] = rolesJSON ? JSON.parse(rolesJSON) : [];
+    const rolesJSON = window.localStorage.getItem('roles');
+    const roles: string[] = rolesJSON ? JSON.parse(rolesJSON) : [];
 
-    const { lang } = useContext(GlobalContext) as TGlobalContext;
+    const { lang, role, setRole } = useContext(GlobalContext) as TGlobalContext;
     const contents = contentsMap.get(lang) as TSettingsComponentContent;
 
-    // const handleRoleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    //     const newRole = event.target.value;
-    //     if (setRole) {
-    //         setRole(newRole as Roles);
-    //         window.localStorage.setItem('role', newRole);
-    //     }
-    // };
+const handleRoleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newRole = event.target.value;
+    if (setRole) {
+        setRole(newRole as Roles);
+        window.localStorage.setItem('role', newRole);
+    }
+};
+
 
     return (
         <div className="mt-14 md:mt-0 text-center flex flex-col items-center mx-auto">
@@ -64,7 +65,7 @@ const SettingsPage = () => {
     >
       {contents.resetPassword}
     </Link>
-    {/* {role !== 'guest' ? (
+    {role !== 'guest' ? (
       <select
         className="py-2 sm:py-3 px-4 sm:px-5 block w-full sm:w-96 bg-white text-center text-lg sm:text-xl rounded-md focus:border-blue-500 dark:hover:text-blue-400 drop-shadow-lg focus:ring-blue-500 disabled:opacity-50 dark:text-white dark:bg-gray-700 disabled:pointer-events-none"
         value={role}
@@ -77,7 +78,7 @@ const SettingsPage = () => {
           </option>
         ))}
       </select>
-    ) : null} */}
+    ) : null}
   </div>
 </div>
 

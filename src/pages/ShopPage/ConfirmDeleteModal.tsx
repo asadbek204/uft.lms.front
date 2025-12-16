@@ -67,7 +67,8 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ isVisible, cont
         try {
             await client.delete(`shop/category/${id}/`);
             toast.success(contents.toast1);
-            onDelete(id); // Call the onDelete to refresh categories
+            window.location.reload();
+            onDelete(id); 
         } catch (error) {
             const apiError = error as ApiError;
 
