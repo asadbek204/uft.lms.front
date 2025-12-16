@@ -88,14 +88,24 @@ const PersonalInfoSection: React.FC<Props> = ({ contents }) => {
         >
           <Input size="large" maxLength={14} />
         </Form.Item>
-
         <Form.Item
+          name="email"
+          label={<span className="font-medium">{contents.email}</span>}
+          rules={[
+            { required: true, message: contents.required },
+            { type: "email", message: contents.invalid_email },
+          ]}
+        >
+          <Input size="large" autoComplete="off" />
+        </Form.Item>
+
+        {/* <Form.Item
           name="address"
           label={<span className="font-medium">{contents.address}</span>}
-          className="md:col-span-2"
+          className=""
         >
           <Input.TextArea rows={1} size="large" />
-        </Form.Item>
+        </Form.Item> */}
       </div>
     </div>
   );

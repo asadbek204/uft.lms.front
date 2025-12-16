@@ -14,7 +14,7 @@ interface Props {
 
 const FamilyInfoSection: React.FC<Props> = ({ contents }) => {
   return (
-    <div className="grid md:grid-cols-2 gap-8">
+    <div className="grid lg:grid-cols-2 gap-8">
       <div className=" p-8">
         <h3 className="text-2xl font-bold mb-8 text-gray-900 dark:text-white">
           {contents.father_info || "Ota ma'lumotlari"}

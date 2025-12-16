@@ -198,6 +198,7 @@ const DateInput = ({ value, onChange }: any) => {
   maskChar={null}
   value={value}
   onChange={onChange}
+  placeholder={placeholders[lang]} 
 >
   {/* @ts-ignore */}
   {(inputProps) => <Input {...inputProps} />}

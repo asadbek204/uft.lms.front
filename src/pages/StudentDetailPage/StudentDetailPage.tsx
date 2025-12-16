@@ -299,8 +299,8 @@ function StudentDetailPage() {
   ];
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900 overflow-y-auto">
-      <div className="max-w-5xl mx-auto">
+    <div className="w-full  overflow-y-auto">
+      <div className="">
         <AttachContractHeader
           fullName={fullName}
           subtitle={t.subtitle}
