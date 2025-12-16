@@ -206,17 +206,20 @@ function GroupsPage() {
     fetchTeachers();
   }, [isModalVisible]);
 
-  useEffect(() => {
-    if (searchQuery === "") {
-      setFilteredGroups(groups);
-    } else {
-      setFilteredGroups(
-        groups.filter((item) =>
-          item.name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
-    }
-  }, [searchQuery, groups]);
+ useEffect(() => {
+  let result = groups.filter(
+    (item) => item.status !== "inactive" 
+  );
+
+  if (searchQuery !== "") {
+    result = result.filter((item) =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+
+  setFilteredGroups(result);
+}, [searchQuery, groups]);
+
 
   const handleEditClick = (groupId: number) => {
     if (editingGroupId === groupId) {

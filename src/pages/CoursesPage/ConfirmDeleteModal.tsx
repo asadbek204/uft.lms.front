@@ -56,7 +56,6 @@ function ConfirmDeleteModal({ content, onDelete }: {content: number, onDelete: (
         if (canDelete) {
             await client.delete(`education/course/delete/${id}/`)
                 .then(() => {
-                    toast.success(contents.toast1);
                     onDelete(id); 
                 })
                 .catch(() => {
