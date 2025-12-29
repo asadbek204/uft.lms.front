@@ -20,7 +20,7 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          cd /var/www/demo.ba.lms.uft.uz/eco_front/
+          cd /var/www/uft.lms.front/
           git pull origin main
-          cd ..
-          make down && docker rmi -f lmsuftacademy-frontend:latest 2>/dev/null || true && make up
+          npm i --no-audit
+          npm run build
