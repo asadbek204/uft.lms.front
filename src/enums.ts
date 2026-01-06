@@ -14,7 +14,8 @@ export enum Pages {
     Settings = 'settings',
     Library = 'library',
     Shop = 'Shop',
-    Contracts = 'contracts'
+    Contracts = 'contracts',
+    Parent = 'parent'
 }
 
 export enum Roles {
@@ -24,7 +25,8 @@ export enum Roles {
     Support = 'support',
     Student = 'student',
     Manager = 'manager',
-    Guest = 'guest'
+    Guest = 'guest',
+    Parent = 'parent'
 }
 
 export enum Langs {

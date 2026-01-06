@@ -13,6 +13,7 @@ import paymentIcon from '../src/images/nav-icons/payment.svg'
 import settingsIcon from '../src/images/nav-icons/settings.svg'
 import booksIcon from '../src/images/nav-icons/open-book.svg'
 import shopIcon from '../src/images/nav-icons/shop.svg'
+import parentIcon from '../src/images/nav-icons/parent.svg'
 
 export const Icons = new Map<Pages, any>([
     [Pages.Courses, coursesIcon],
@@ -29,7 +30,8 @@ export const Icons = new Map<Pages, any>([
     [Pages.Settings, settingsIcon],
     [Pages.Library, booksIcon],
     [Pages.Shop, shopIcon],
-    [Pages.Contracts, topicsIcon]
+    [Pages.Contracts, topicsIcon],
+    [Pages.Parent, parentIcon]
 
 ])
 
@@ -128,6 +130,11 @@ export const Translator = new Map<Pages, TTranslator>([
         uz: 'Kontraktlar',
         ru: 'Контракты',
         en: 'Contracts'
+    }],
+    [Pages.Parent, {
+        uz: 'Ota onalar',
+        ru: 'Родители',
+        en: 'Parents'
     }]
 ])
 
@@ -142,6 +149,7 @@ const PagesMap = new Map<Roles, Pages[]>([
         // Pages.Topics,
         Pages.Attendance,
         Pages.StaffList,
+        Pages.Parent,
         Pages.Library,
         Pages.News,
         Pages.Shop,
@@ -160,7 +168,7 @@ const PagesMap = new Map<Roles, Pages[]>([
     ]],
 
     
-    [Roles.Support, [
+    [Roles.Parent, [
         Pages.Groups,
         Pages.Topics,
         Pages.Attendance,

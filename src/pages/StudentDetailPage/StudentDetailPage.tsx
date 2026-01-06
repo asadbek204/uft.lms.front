@@ -267,36 +267,42 @@ function StudentDetailPage() {
     .join(" ")
     .trim();
 
-  const tabItems = [
-    {
-      key: "personal",
-      label: (
-        <span className="text-base font-medium flex items-center gap-2">
-          <i className="fa-solid fa-user" />
-          {t.personal_info}
-        </span>
-      ),
-      children: (
-        <Form form={personalForm} onFinish={onPersonalFinish} layout="vertical">
-          <PersonalInfoSection contents={t} />
-        </Form>
-      ),
-    },
-    {
-      key: "family",
-      label: (
-        <span className="text-base font-medium flex items-center gap-2">
-          <i className="fa-solid fa-users" />
-          {t.family_info}
-        </span>
-      ),
-      children: (
-        <Form form={familyForm} onFinish={onFamilyFinish} layout="vertical">
-          <FamilyInfoSection contents={t} />
-        </Form>
-      ),
-    },
-  ];
+ const tabItems = [
+  {
+    key: "personal",
+    label: (
+      <span className="text-base font-medium flex items-center gap-2">
+        <i className="fa-solid fa-user" />
+        {t.personal_info}
+      </span>
+    ),
+    children: (
+      <Form form={personalForm} onFinish={onPersonalFinish} layout="vertical">
+        <PersonalInfoSection contents={t} />
+      </Form>
+    ),
+  },
+
+  ...(role === "admin"
+    ? [
+        {
+          key: "family",
+          label: (
+            <span className="text-base font-medium flex items-center gap-2">
+              <i className="fa-solid fa-users" />
+              {t.family_info}
+            </span>
+          ),
+          children: (
+            <Form form={familyForm} onFinish={onFamilyFinish} layout="vertical">
+              <FamilyInfoSection contents={t} />
+            </Form>
+          ),
+        },
+      ]
+    : []),
+];
+
 
   return (
     <div className="w-full  overflow-y-auto">

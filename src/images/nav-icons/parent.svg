@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="48" height="48"
+     viewBox="0 0 48 48"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round">
+  <title>Parent Icon — auto color (light/dark mode)</title>
+  <circle cx="16" cy="10" r="6"/>
+  <circle cx="32" cy="14" r="5"/>
+  <path d="M8 28c0-6 4-10 8-10s8 4 8 10v10H8V28z"/>
+  <path d="M28 26c0-4 3-6 6-6s6 2 6 6v8h-12v-8z"/>
+  <line x1="24" y1="30" x2="28" y2="28"/>
+</svg>
