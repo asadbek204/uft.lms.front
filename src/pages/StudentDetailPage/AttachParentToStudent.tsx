@@ -23,7 +23,6 @@ interface AttachParentProps {
 }
 
 const AttachParentToStudent: React.FC<AttachParentProps> = ({
-  studentId,
   student,
   open,
   onClose,
