@@ -77,47 +77,49 @@ const Login = () => {
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
+
+    
     const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (loginInput.current && passwordInput.current) {
-            try {
-              const response = await client.post("token/", {
-                phone_number: loginInput.current.value,
-                password: passwordInput.current.value,
-              });
-              toast.success(contents.toast1);
+  e.preventDefault();
 
-              window.localStorage.setItem(
-                "roles",
-                JSON.stringify(response.data.role)
-              );
-              window.localStorage.setItem(
-                "role",
-                response.data.role.includes(Roles.Student)
-                  ? Roles.Student.toString()
-                  : response.data.role[0]
-              );
-              window.localStorage.setItem("token", response.data.access);
-              window.localStorage.setItem("refresh", response.data.refresh);
-              window.localStorage.setItem("id", response.data.id);
-              // Using navigate instead of window.location.href to prevent full page reload
-              window.location.href = "/";
-            } catch (err) {
-              // Clear invalid tokens on login error
-              window.localStorage.removeItem("token");
-              window.localStorage.removeItem("refresh");
-              window.localStorage.removeItem("id");
-              window.localStorage.removeItem("roles");
-              window.localStorage.removeItem("role");
+  if (loginInput.current && passwordInput.current) {
+    try {
+      const response = await client.post("token/", {
+        phone_number: loginInput.current.value,
+        password: passwordInput.current.value,
+      });
 
-              if (err instanceof Error) {
-                toast.error(contents.toast2);
-              } else {
-                toast.error(contents.toast3);
-              }
-            }
-        }
-    };
+      toast.success(contents.toast1);
+
+      const roles = response.data.role;
+
+      let detectedRole = Roles.Guest;
+
+      if (roles.includes(Roles.Student)) detectedRole = Roles.Student;
+      else if (roles.includes(Roles.Teacher)) detectedRole = Roles.Teacher;
+      else if (roles.includes(Roles.Parent)) detectedRole = Roles.Parent;
+      else detectedRole = roles[0];
+
+      window.localStorage.setItem("role", detectedRole);
+      window.localStorage.setItem("roles", JSON.stringify(roles));
+
+      window.localStorage.setItem("token", response.data.access);
+      window.localStorage.setItem("refresh", response.data.refresh);
+      window.localStorage.setItem("id", response.data.id);
+
+      window.location.href = "/";
+
+    } catch (err) {
+      window.localStorage.clear();
+
+      if (err instanceof Error) toast.error(contents.toast2);
+      else toast.error(contents.toast3);
+    }
+  }
+};
+
+
+    
 
     return (
         <div

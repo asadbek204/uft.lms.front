@@ -35,41 +35,59 @@ function App() {
     );
     const [userId, setUserId] = useState<number>(Number(window.localStorage.getItem('id')));
 
-     useEffect(() => {
-       const fetchUser = async () => {
-         try {
-           // Faqat token bo'lsa accounts/me/ so'rovi yuborish
-           const storedToken = window.localStorage.getItem("token");
-           if (!storedToken) {
-             setRole(Roles.Guest);
-             return;
-           }
+   useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      const storedToken = window.localStorage.getItem("token");
 
-           const res = await client.get("accounts/me/");
-           const roles = res.data.roles;
+      // Token bo'lmasa — Guest
+      if (!storedToken) {
+        setRole(Roles.Guest);
+        return;
+      }
 
-           let detectedRole = Roles.Guest;
+      // Backenddan foydalanuvchi ma'lumotini olish
+      const res = await client.get("accounts/me/");
+      const roles = res.data.roles;
 
-           if (roles.admin) detectedRole = Roles.Admin;
-           else if (roles.manager) detectedRole = Roles.Manager;
-           else if (roles.teacher) detectedRole = Roles.Teacher;
-           else if (roles.students?.length > 0) detectedRole = Roles.Student;
-           else if (roles.accountant) detectedRole = Roles.Accountant;
+      let detectedRole: Roles = Roles.Guest;
 
-           setRole(detectedRole);
-           window.localStorage.setItem("role", detectedRole);
-         } catch (error) {
-           console.error("User data error:", error);
-           window.localStorage.removeItem("token");
-           window.localStorage.removeItem("refresh");
-           window.localStorage.removeItem("id");
-           window.localStorage.removeItem("roles");
-           setRole(Roles.Guest);
-         }
-       };
+      // ===== BACKEND ORQALI ANIQLASH =====
+      if (roles.admin) detectedRole = Roles.Admin;
+      else if (roles.manager) detectedRole = Roles.Manager;
+      else if (roles.teacher) detectedRole = Roles.Teacher;
+      else if (roles.students?.length > 0) detectedRole = Roles.Student;
+      else if (roles.accountant) detectedRole = Roles.Accountant;
+      else if (roles.parent) detectedRole = Roles.Parent;
 
-       fetchUser();
-     }, []);
+      // ===== LOCAL STORAGE ORQALI ZAXIRA TEKSHIRUV =====
+      const storedRoles = JSON.parse(
+        window.localStorage.getItem("roles") ?? "[]"
+      );
+
+      if (storedRoles.includes("parent")) {
+        detectedRole = Roles.Parent;
+      }
+
+      // ===== ROLE YANGILASH =====
+      setRole(detectedRole);
+      window.localStorage.setItem("role", detectedRole);
+
+    } catch (error) {
+      console.error("User data error:", error);
+
+      window.localStorage.removeItem("token");
+      window.localStorage.removeItem("refresh");
+      window.localStorage.removeItem("id");
+      window.localStorage.removeItem("roles");
+
+      setRole(Roles.Guest);
+    }
+  };
+
+  fetchUser();
+}, []);
+
 
    
 
@@ -114,7 +132,7 @@ function App() {
                     currentUrl.split("/")[1] !== "login")
                     ? "bg-gradient-light dark:bg-gradient-dark"
                     : ""
-                } bg-center-center bg-full flex w-full max-h-[850px] m-10 rounded-xl`}
+                } bg-center-center bg-full flex w-full overflow-x-scroll min-h-[100vh] md:min-h-0     m-10 rounded-xl`}
                 style={
                     currentUrl.split("/")[1] !== "change-password" &&
                     currentUrl.split("/")[1] !== "reset-password" &&

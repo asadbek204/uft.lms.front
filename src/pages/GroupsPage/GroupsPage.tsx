@@ -249,32 +249,47 @@ function GroupsPage() {
     }
   };
 
-  const handleSaveTeacher = async (id: number) => {
-    try {
-      const daysOfWeek = isOddDays ? daysOfWeekOdd : daysOfWeekEven;
-      const schedule = daysOfWeek.map((day) => ({
-        day,
-        starts_at: `${startTime}:00`,
-        ends_at: `${endTime}:00`,
-      }));
+ const handleSaveTeacher = async (id: number) => {
+  try {
+    const daysOfWeek = isOddDays ? daysOfWeekOdd : daysOfWeekEven;
 
-      const groupData = new FormData();
-      groupData.append("name", editingGroupName ?? "");
-      if (selectedTeacherId) {
-        groupData.append("teacher", selectedTeacherId.toString());
-      }
+    const schedule = daysOfWeek.map((day) => ({
+      day,
+      starts_at: `${startTime}:00`,
+      ends_at: `${endTime}:00`,
+    }));
 
-      await client.patch(`education/group/update/${id}/`, groupData);
-      await client.put(`education/group/${id}/schedule/update/`, { schedule });
+    // 🚀 JSON object yuboramiz
+    const payload: any = {
+      name: editingGroupName ?? "",
+    };
 
-      toast.success(contents.toast1);
-      setEditingGroupId(null);
-      fetchGroups();
-    } catch (err: any) {
-      console.error(err.response?.data);
-      toast.error(contents.toast2);
+    if (selectedTeacherId) {
+      payload.teacher = selectedTeacherId;
     }
-  };
+
+    await client.patch(
+      `education/group/update/${id}/`,
+      payload, // <-- JSON
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    // schedule alohida PUT bo‘lib qoladi
+    await client.put(`education/group/${id}/schedule/update/`, { schedule });
+
+    toast.success(contents.toast1);
+    setEditingGroupId(null);
+    fetchGroups();
+
+  } catch (err: any) {
+    console.error(err.response?.data);
+    toast.error(contents.toast2);
+  }
+};
 
   return (
     <div className="w-full mt-12 md:mt-0">

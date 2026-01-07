@@ -12,17 +12,13 @@ import ResetPasswordPage from './pages/ResetPassword/ResetPasswordPage';
 import AddEmployee from './pages/StuffList/AddUsers/AddEmployee';
 import TeachersPageList from "./pages/TeachersPage/TeacherPageList/TeachersPageList.tsx";
 import GroupDetailPage from "./pages/TeachersPage/TeacherPageList/GroupDetailPage/GroupDetailPage.tsx";
-// import StudentDetailPage from "./pages/TeachersPage/TeacherPageList/StudentDetailPage/StudentDetailPage.tsx";
 import VideosModuleList from "./pages/VideosPage/VideosModuleList/VideosModuleList.tsx";
 import VideoListItems from "./pages/VideosPage/VideosModuleList/VideoListItems/VideoListItems.tsx";
 import NewsSingle from './pages/News/New/NewSingle/NewSingle.tsx';
 import News from "./pages/News/News.tsx";
 import GroupSingle from './pages/GroupsPage/GroupSingle/GroupSingle.tsx';
-// import GroupSingleUsers from './pages/GroupsPage/GroupSingle/GroupSingleUsers/GroupSingleUsers.tsx'
 import Login from './pages/Login/Login'
 import Forgot from './pages/Forgot/Forgot.tsx';
-// import DebtorsPageUsers from './pages/DebtorsPage/DebtorsPageUsers/DebtorsPageUsers.tsx'
-// import AttendanceTablePage from "./pages/AttendancePage/AttendanceTablePage/AttendanceTablePage.tsx";
 import {Roles} from './enums'
 import {GlobalContext} from "../src/App.tsx";
 import {Langs} from "../src/enums.ts"
@@ -30,35 +26,25 @@ import {useContext} from 'react';
 import {Link, Route, Routes} from 'react-router-dom';
 import HomePage from "./pages/HomePage/HomePage.tsx";
 import LibraryPage from "./pages/LibraryPage/LibraryPage.tsx";
-// import MJHomePage from './ManagerRole/MJHomePage.tsx';
 import MJContacts from './ManagerRole/MJContracts/MJContracts.tsx'
 import ShopPage from "./pages/ShopPage/ShopPage.tsx";
-// import MJContactsDetail from './ManagerRole/MJContracts/MJContractsDetail/MJContactsDetail.tsx';
 import ShopItemsPage from "./pages/ShopPage/ShopItems/ShopItemsPage.tsx";
-
 import TCHTopicsPage from './TeacherRole/TCHTopicsPage/TChTopicsPage.tsx';
 import TCHVideos from './TeacherRole/TCHVideosPage/TCHVideosModule/TCHVideos/TCHVideos.tsx';
-// import TCHHomePage from './TeacherRole/TCHHomePage.tsx';
 import TCHGroupPage from './TeacherRole/TCHGroupPage/TCHGroupPage.tsx';
 import TCHGroupList from './TeacherRole/TCHGroupPage/TCHGroupList/TCHGroupList.tsx';
-// import TCHGroupInform from './TeacherRole/TCHGroupPage/TCHGroupList/TCHGroupInform/TCHGroupInform.tsx';
 import TCHAttandancePage from './TeacherRole/TCHAttendancePage/TCHAttandancePage.tsx';
 import TCHAttendanceDetailPage from "./TeacherRole/TCHAttendancePage/TCHAttendanceDetailPage/TCHAttendanceDetailPage.tsx";
 import TCHShedule from "./TeacherRole/TCHShedulePage/TCHShedulePage.tsx";
 import TCHTopicsSingle from "./TeacherRole/TCHTopicsPage/TCHTopicsSingle/TCHTopicsSingle.tsx";
 import TCHTopicsSingleDetail from './TeacherRole/TCHTopicsPage/TCHTopicsSingle/TCHTopicsSingleDetail/TCHTopicsSingleDetail.tsx'
 import TCHSheduleSingle from "./TeacherRole/TCHShedulePage/TCHSchedule/TCHSchedule.tsx"
-
-// import STHomePage from "./StudentRole/STHomePage.tsx";
 import STPaymentsPage from './StudentRole/PaymentsPage/STPaymentsPage'
 import STAttendancePages from './StudentRole/AttendancePage/STAttendancePage.tsx'
 import STAttendanceList from './StudentRole/AttendancePage/AttendanceList/STAttendenceList.tsx'
-// import STLibraryPage from './StudentRole/LibraryPage/STLibraryPage.tsx'
 import STTopics from './StudentRole/TopicsPage/TopicsModulePage/TopicsModulePage.tsx'
 import STTopicsItem from './StudentRole/TopicsPage/TopicsModulePage/TopicsModuleVideos/TopicsModuleItems.tsx'
 import STToicsDetails from './StudentRole/TopicsPage/TopicsModulePage/TopicsModuleVideos/TopicDetailPage/TopicDetailPage.tsx'
-
-// import ACHomePage from './AccountantRole/ACHomePage.tsx';
 import ACTeachers from './AccountantRole/ACTeachers/ACTeachers.tsx';
 import ACDebts from './AccountantRole/ACDebts/ACDebts.tsx'
 import STTopicGroups from "./StudentRole/TopicsPage/STTopicGroups.tsx";
@@ -77,7 +63,9 @@ import MJContractNewModule from "./ManagerRole/MJContracts/MJContractNewModule.t
 import AttachContractModal from "./pages/StudentDetailPage/AttachContractModal.tsx";
 import TCHTopicsAttendancee from './TeacherRole/TCHTopicsPage/TCHTopicsSingle/TCHTopicsSingleDetail/TCHTopicsAttendance';
 import STAttendanceRequest from "./StudentRole/AttendancePage/AttendanceList/STAttendanceRequest.tsx";
-import ParentPage from "./pages/ParentPage/ParentPage.tsx";
+import ParentPage from "./ParentRole/ParentPage/ParentPage.tsx";
+import ChildAttendancePage from "./ParentRole/ChildAttendancePage/ChildAttendancePage.tsx";
+import ChildPaymentsPage from "./ParentRole/ChildPaymentsPage/ChildPaymentsPage.tsx";
 
 type TNewsComponentContent = {
     title: string;
@@ -234,15 +222,7 @@ const parent: ReactNode = (
     <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/settings" element={<SettingsPage/>}/>
-        {/* <Route path="/videos" element={<TCHVideos/>}/> */}
-        {/*<Route path="/videos/:id" element={<TCHVideosModulePage/>}/>*/}
-        {/* <Route path="/videos/:id/:id" element={<TCHVideos/>}/> */}
-        <Route path="/topics" element={<TCHTopicsPage/>}/>
-        <Route path="/topics/:id" element={<TCHTopicsSingle/>}/>
-        <Route path="/topics/:groupId/:id" element={<TCHTopicsSingleDetail/>}/>
-        <Route path="/topics/attandance" element={<TCHTopicsAttendance/>}/>
-        <Route path="/attendance" element={<TCHAttandancePage/>}/>
-        <Route path="/attendance/:id" element={<TCHAttendanceDetailPage/>}/>
+        <Route path="/attendance" element={<ChildAttendancePage/>}/>
         <Route path='/change-password' element={<ChangePasswordPage/>}/>
         <Route path='/reset-password' element={<ResetPasswordPage/>}/>
         <Route path='/news' element={<News/>}/>
@@ -250,13 +230,7 @@ const parent: ReactNode = (
         <Route path='/library' element={<LibraryPage/>}/>
         <Route path='/login' element={<Login/>}/>
         <Route path='/forgot' element={<Forgot/>}/>
-        <Route path='/groups' element={<TCHGroupPage/>}/>
-        <Route path='/groups/:id' element={<TCHGroupList/>}/>
-        <Route path='/groups/:id/:id' element={<StudentDetailPageAll/>}/>
-        {/* <Route path='/classschedule' element={<TCHShedule/>}/> */}
-        {/* <Route path='/classschedule/:id' element={<TCHSheduleSingle/>}/> */}
-        {/* <Route path='/debts/:id' element={<DebtorsPageUsers/>}/> */}
-        {/* <Route path='/payments' element={<STPaymentsPage/>}/> */}
+        <Route path='/payments' element={<ChildPaymentsPage/>}/>
         <Route path='*' element={<Page404/>}/>
     </Routes>);
 

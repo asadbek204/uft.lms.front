@@ -33,9 +33,7 @@ type TUser = {
 function SideBar({ pages, setLang, setPage }: TSideBarProperties) {
   const { lang, role, userId } = useContext(GlobalContext);
   const [expanded, setExpanded] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem("theme") === "dark";
-  });
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem("theme") === "dark");
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenLang, setIsOpenLang] = useState(false);
   const [user, setUser] = useState<TUser>({ first_name: "", last_name: "" });
@@ -43,21 +41,17 @@ function SideBar({ pages, setLang, setPage }: TSideBarProperties) {
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
-    if (isOpenLang) {
-      setIsOpenLang(!isOpenLang);
-    }
+    if (isOpenLang) setIsOpenLang(false);
   };
 
   const toggleDropdownLang = () => {
     setIsOpenLang(!isOpenLang);
-    if (isOpen) {
-      setIsOpen(!isOpen);
-    }
+    if (isOpen) setIsOpen(false);
   };
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 600) {
+      if (window.innerWidth < 768) {
         setExpanded(false);
       } else {
         setExpanded(true);
@@ -65,38 +59,35 @@ function SideBar({ pages, setLang, setPage }: TSideBarProperties) {
     };
 
     handleResize();
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest(".dropdown")) {
+      if (!(event.target as HTMLElement).closest(".dropdown")) {
         setIsOpen(false);
         setIsOpenLang(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response = await client.get("accounts/me/");
-      setUser(response.data as TUser);
+      try {
+        const response = await client.get("accounts/me/");
+        setUser(response.data as TUser);
+      } catch (err) {
+        console.error("User fetch error:", err);
+      }
     };
-
-    fetchUser();
+    if (userId) fetchUser();
   }, [userId]);
 
   const toggleDarkMode = () => {
-    setIsDarkMode((prevMode) => !prevMode);
+    setIsDarkMode((prev) => !prev);
     window.location.reload();
   };
 
@@ -104,175 +95,139 @@ function SideBar({ pages, setLang, setPage }: TSideBarProperties) {
     if (role === "guest") {
       window.location.href = "/login";
     } else {
-      closeDropdown();
+      localStorage.removeItem("role");
+      localStorage.removeItem("token");
+      window.location.href = "/";
     }
-  };
-
-  const closeDropdown = () => {
-    window.localStorage.removeItem("role");
-    window.localStorage.removeItem("token");
-    window.location.href = "/";
   };
 
   const getPageInfo = (page: Pages) => {
     const pageNames = Translator.get(page) as TTranslator;
     let pageName = pageNames.en;
-    switch (lang) {
-      case "uz":
-        pageName = pageNames.uz;
-        break;
-      case "ru":
-        pageName = pageNames.ru;
-        break;
-    }
+    if (lang === "uz") pageName = pageNames.uz;
+    if (lang === "ru") pageName = pageNames.ru;
     return [page, pageName, Icons.get(page)];
   };
 
   const loc = useLocation();
-  const currentUrl = loc.pathname;
+  const currentPath = loc.pathname.split("/")[1] || "";
 
-  const toggleSidebar = () => {
-    setExpanded((prev) => !prev);
-  };
+  const toggleSidebar = () => setExpanded((prev) => !prev);
 
-  // const handleClickOutside = (event: MouseEvent) => {
-  //   if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-  //     setExpanded(false);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   document.addEventListener("mousedown", handleClickOutside);
-  //   return () => {
-  //     document.removeEventListener("mousedown", handleClickOutside);
-  //   };
-  // }, []);
+  useEffect(() => {
+    const handleClickOutsideSidebar = (event: MouseEvent) => {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node) &&
+        window.innerWidth < 768
+      ) {
+        setExpanded(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutsideSidebar);
+    return () => document.removeEventListener("mousedown", handleClickOutsideSidebar);
+  }, []);
 
   return (
     <>
-      {expanded && (
+      {expanded && window.innerWidth < 768 && (
         <div
-          className=" md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={toggleSidebar}
-        ></div>
+        />
       )}
-      <div className="absolute  mb-24 top-0 flex justify-between left-0 w-full md:hidden p-2  bg-white text-black z-50 dark:bg-gray-700">
-        <button
-          className={` -ml-52 rounded-lg bg-gray-50 hover:bg-gray-100 outline-0 dark:bg-gray-400 ${
-            expanded ? "block" : "hidden"
-          } md:hidden`}
-        ></button>
-        <button
-          onClick={toggleSidebar}
-          className={`transition-transform text-black dark:text-white duration-300 ${
-            expanded ? "transform rotate-180" : "transform rotate-0"
-          }`}
-        >
-          <i className={`fas ${expanded ? "" : "fa-bars"}`}></i>
+
+      <div className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700 z-50 md:hidden">
+        <button onClick={toggleSidebar} className="text-2xl text-gray-800 dark:text-gray-200">
+          <i className={`fa-solid ${expanded ? "fa-xmark" : "fa-bars"}`}></i>
         </button>
-        <Link to="/">
+
+        <Link to="/" onClick={() => setPage(Pages.Home)}>
           <img
-            onClick={() => setPage(Pages.Home)}
             src={isDarkMode ? logodark : logolight}
-            className={`overflow-hidden h-14 transition-all`}
-            alt="logo"
+            className="h-10 object-contain"
+            alt="Logo"
           />
         </Link>
-        <div></div>
+
+        <div className="w-10" /> 
       </div>
+
       <aside
         ref={sidebarRef}
-        className={`h-screen ${
-          expanded ? "block" : "hidden"
-        } lg:block absolute z-40 md:static  md:mt-0 transition-shadow duration-300 ${
-          expanded ? "shadow-lg" : ""
-        }`}
+        className={`
+          fixed top-0 left-0 h-screen z-50
+          transition-all duration-300 ease-in-out
+          md:static md:z-auto
+          ${expanded ? "md:w-96 w-[50%] " : "w-23"}
+          bg-white dark:bg-gray-800 border-r dark:border-gray-700
+          shadow-lg md:shadow-none
+          ${expanded ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+        `}
       >
-        <nav
-          className={`h-screen overflow-y-hidden md:h-full inline-flex bg-white flex-col border-r dark:border-slate-950 drop-shadow-lg dark:text-dark dark:bg-gray-800`}
-        >
-          <div
-            className={`p-4 pb-2 flex ${
-              expanded
-                ? "justify-between items-center "
-                : "justify-center items-center"
-            }`}
-          >
-            <Link to="/" className=" md:block">
+        <nav className="flex flex-col h-full">
+          <div className="p-4 border-b dark:border-gray-700 flex items-center justify-between">
+            <Link to="/" onClick={() => setPage(Pages.Home)} className="flex-shrink-0">
               <img
-                onClick={() => setPage(Pages.Home)}
                 src={isDarkMode ? logodark : logolight}
-                className={`overflow-hidden transition-all ${
-                  expanded ? "w-44" : "w-0"
-                }`}
-                alt="logo"
+                className={`transition-all duration-300 ${expanded ? "w-40" : "w-0"}`}
+                alt="Logo"
               />
             </Link>
+
             <button
-              onClick={() => setExpanded((curr) => !curr)}
-              className="hidden lg:block p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 outline-0 dark:bg-gray-400"
+              onClick={toggleSidebar}
+              className="hidden md:block p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              title={expanded ? "Collapse sidebar" : "Expand sidebar"}
             >
               {expanded ? (
-                <img
-                  className="filter dark:invert"
-                  src={JustifyRegular}
-                  alt=""
-                />
+                <img src={JustifyRegular} className="w-6 h-6 dark:invert" alt="Collapse" />
               ) : (
-                <img className="filter dark:invert" src={LeftRegular} alt="" />
+                <img src={LeftRegular} className="w-6 h-6 dark:invert" alt="Expand" />
               )}
             </button>
           </div>
 
-          <div
-            className={`${
-              expanded ? "overflow-y-auto 2xl:py-5" : ""
-            } flex-1 content-center relative`}
-          >
-            <ul className="mb-3 px-5">
-              {pages?.map((item) => {
+          <div className="flex-1 overflow-y-auto py-4 px-3">
+            <ul className="space-y-1">
+              {pages.map((item) => {
                 const [key, pageName, icon] = getPageInfo(item);
+                const isActive = currentPath === key.toLowerCase();
+
                 return (
-                  <Link
-                    key={key}
-                    to={`/${key.toLowerCase()}`}
-                    className="flex items-center w-full"
-                  >
+                  <Link key={key} to={`/${key.toLowerCase()}`} className="block">
                     <li
                       className={`
-                                flex items-center py-0.5 px-1 2xl:py-3.5 2xl:px-3
-                                font-medium rounded-md cursor-pointer my-1
-                                transition-colors group text-xl dark:text-white
-                                ${
-                                  item.toLowerCase() ===
-                                  currentUrl.split("/")[1]
-                                    ? "bg-gray-200 dark:bg-gray-500 text-black-800"
-                                    : "hover:bg-gray-100 text-gray-600 dark:hover:bg-gray-500 dark:text-gray-600"
-                                }
-                            `}
+                        flex items-center gap-3 py-3 px-4 rounded-lg cursor-pointer
+                        transition-colors duration-200 group relative
+                        ${isActive
+                          ? "bg-gray-100 dark:bg-gray-700 text-black dark:text-white"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}
+                      `}
                     >
                       <img
-                        className="w-10 filter dark:invert"
                         src={icon}
                         alt={pageName}
+                        className="w-6 h-6 object-contain filter dark:invert"
                       />
+
                       <span
-                        className={`overflow-hidden font-semibold transition-all text-black dark:text-white text-base ${
-                          expanded ? "w-52 ml-3" : "w-0"
-                        }`}
+                        className={`
+                          font-medium whitespace-nowrap overflow-hidden transition-all duration-300
+                          ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0"}
+                        `}
                       >
                         {pageName}
                       </span>
 
                       {!expanded && (
                         <div
-                          id="littletext"
-                          className={`little_text 
-                                        absolute left-full rounded-md px-2 py-1 ml-2
-                                        bg-gray-100 text-black text-sm
-                                        invisible opacity-20 -translate-x-3 transition-all
-                                        group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
-                                    `}
+                          className="
+                            absolute left-full ml-3 px-3 py-2 bg-gray-800 text-white text-sm rounded-md
+                            opacity-0 invisible group-hover:opacity-100 group-hover:visible
+                            transition-all duration-200 pointer-events-none whitespace-nowrap
+                            shadow-lg z-50
+                          "
                         >
                           {pageName}
                         </div>
@@ -284,81 +239,83 @@ function SideBar({ pages, setLang, setPage }: TSideBarProperties) {
             </ul>
           </div>
 
-          <div
-            className={`border-t dark:border-slate-950 flex justify-center p-3 ${
-              expanded ? "" : "justify-center items-center"
-            }`}
-          >
-            <img
-              src={`https://ui-avatars.com/api/?name=${
-                user?.first_name?.charAt(0) || "U"
-              }&background=000000&bold=true&color=fff`}
-              alt="avatar"
-              className="w-10 h-10 rounded-md"
-            />
-
-            <div
-              className={`flex justify-between items-center overflow-hidden transition-all ${
-                expanded ? "w-56 ml-3" : "w-0"
-              }`}
-            >
-              <div className="leading-4">
-                <h4 className="font-semibold dark:text-white drop-shadow-sm">
-                  {user.first_name}
-                </h4>
+          <div className="border-t dark:border-gray-700 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <img
+                  src={`https://ui-avatars.com/api/?name=${user?.first_name?.charAt(0) || "U"}&background=000000&color=fff&bold=true`}
+                  alt="User"
+                  className="w-9 h-9 rounded-full object-cover"
+                />
+                <div
+                  className={`
+                    transition-all duration-300 overflow-hidden
+                    ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0"}
+                  `}
+                >
+                  <p className="font-medium text-sm text-black dark:text-white truncate">
+                    {user.first_name || "User"}
+                  </p>
+                </div>
               </div>
-              <div className="flex align-center gap-1 content-center">
-                <div className="dropdown">
+
+              <div
+                className={`
+                  flex items-center gap-2 transition-all duration-300
+                  ${expanded ? "opacity-100" : "opacity-0 w-0"}
+                `}
+              >
+                <div className="relative dropdown">
                   <button
                     onClick={toggleDropdownLang}
-                    className="px-2 py-1.5 rounded-lg bg-gray-300 hover:bg-gray-400 dark:bg-gray-400"
+                    className="py-0.5 px-1.5 bg-gray-300 hover:bg-gray-400 dark:bg-gray-400 rounded-lg  dark:hover:bg-gray-700"
                   >
-                    <i className="fa fa-globe text-black dark:text-white"></i>
+                    <i className="fa-solid  fa-globe text-gray-700 dark:text-gray-300"></i>
                   </button>
+
                   {isOpenLang && (
-                    <ul className="dropdown-menu1 bg-white dark:bg-black flex gap-2 rounded">
-                      {langs?.map((el) => (
+                    <div className="absolute bottom-full right-0 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700 py-2 px-3 flex gap-2">
+                      {langs.map((el) => (
                         <button
-                          key={"lang-" + el}
-                          className={`my-1 px-3 rounded ${
-                            lang === el
-                              ? "text-gray-50 dark:text-black bg-black dark:bg-gray-300"
-                              : "dark:text-white"
-                          }`}
+                          key={el}
                           onClick={() => setLang(el)}
+                          className={`
+                            py-1.5 text-sm font-medium rounded
+                            ${lang === el
+                              ? "bg-gray-200 p-2 dark:text-white dark:bg-gray-700"
+                              : "hover:bg-gray-100 p-2 dark:text-white  dark:hover:bg-gray-700"}
+                          `}
                         >
-                          {el}
+                          {el.toUpperCase()}
                         </button>
                       ))}
-                    </ul>
+                    </div>
                   )}
                 </div>
-                <DarkModeToggle
-                  isDarkMode={isDarkMode}
-                  toggleDarkMode={toggleDarkMode}
-                />
-                <div className="dropdown">
+
+                <DarkModeToggle isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+
+                <div className="relative dropdown">
                   <button
-                    className="px-1 py-1.5 rounded-lg bg-gray-300 hover:bg-gray-400 dark:bg-gray-400"
                     onClick={toggleDropdown}
+                    className="p-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-400 rounded-lg  dark:hover:bg-gray-700"
                   >
                     <img
-                      className="filter dark:invert"
                       src={MoreVertical}
-                      alt=""
+                      className="w-5 h-5 dark:invert"
+                      alt="More"
                     />
                   </button>
+
                   {isOpen && (
-                    <ul className="dropdown-menu rounded bg-white dark:bg-black">
-                      <li>
-                        <a
-                          className="text-black dark:text-white cursor-pointer font-semibold  dark:hover:bg-transparent dark:hover:text-blue-400"
-                          onClick={handleAuthAction}
-                        >
-                          {role === "guest" ? "login" : "logout"}
-                        </a>
-                      </li>
-                    </ul>
+                    <div className="absolute bottom-full right-0 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700 py-1">
+                      <button
+                        onClick={handleAuthAction}
+                        className="block px-5 py-2.5 text-sm dark:text-white text-left w-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        {role === "guest" ? "Login" : "Logout"}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
