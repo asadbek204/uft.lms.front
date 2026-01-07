@@ -517,15 +517,15 @@ const ParentPage: React.FC = () => {
               label={t.phone}
               rules={[{ required: true, message: t.phoneRequired }]}
             >
-              <InputMask mask="(99) 999-99-99">
-                {inputProps => (
-                  <Input
-                    {...inputProps}
-                    addonBefore="+998"
-                    placeholder="(99) 123 45 67"
-                  />
-                )}
-              </InputMask>
+            <InputMask
+  mask="(99) 999-99-99"
+  value={form.getFieldValue("phone_number")}
+  onChange={e => form.setFieldsValue({ phone_number: e.target.value })}
+  {...(undefined as any)}
+>
+  <Input addonBefore="+998" placeholder="(99) 123 45 67" />
+</InputMask>
+
             </Form.Item>
 
             <Form.Item
