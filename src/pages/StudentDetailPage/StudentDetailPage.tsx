@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Form, Tabs } from "antd";
+import { Button, Form, Tabs } from "antd";
 import { toast } from "react-toastify";
 import { GlobalContext } from "../../App";
 import { Langs } from "../../enums";
@@ -11,6 +11,7 @@ import PersonalInfoSection from "./PersonalInfoSection";
 import FamilyInfoSection from "./FamilyInfoSection";
 import dayjs from "dayjs";
 import AttachContractHeader from "./StudentProfileHeader.tsx";
+import AttachParentToStudent from "./AttachParentToStudent.tsx";
 
 const contentsMap = new Map<Langs, any>([
   [
@@ -113,18 +114,25 @@ function StudentDetailPage() {
   const navigate = useNavigate();
   const { lang, role } = useContext(GlobalContext);
   const t = contentsMap.get(lang) || contentsMap.get(Langs.UZ)!;
-
+  const [attachModalOpen, setAttachModalOpen] = useState(false);
   const [personalForm] = Form.useForm();
   const [familyForm] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
+  const studentId = Number(id);
+  const [student, setStudent] = useState<any>(null);
+
+  if (isNaN(studentId)) {
+    return <div className="text-red-500">Talaba ID noto'g'ri!</div>;
+  }
 
   useEffect(() => {
     const fetchData = async () => {
       if (!id) return;
       try {
         const res = await client.get(`students/retrive/${id}/`);
+        setStudent(res.data);
         const doc = res.data.document?.[0] || {};
 
         const userPinfl = res.data.user.pinfl;
@@ -144,7 +152,9 @@ function StudentDetailPage() {
           pinfl: finalPinfl,
           address: doc.address || "",
           email: res.data.user.email || "",
-          birthday: res.data.user.birthday ? dayjs(res.data.user.birthday) : null,
+          birthday: res.data.user.birthday
+            ? dayjs(res.data.user.birthday)
+            : null,
         };
 
         const familyValues = {
@@ -154,9 +164,12 @@ function StudentDetailPage() {
             sure_name: res.data.father?.sure_name || "",
             passport: res.data.father?.passport || "",
             pinfl: res.data.father?.pinfl ? String(res.data.father.pinfl) : "",
-            phone_number: res.data.father?.phone_number?.replace("+998", "") || "",
+            phone_number:
+              res.data.father?.phone_number?.replace("+998", "") || "",
             email: res.data.father?.email || "",
-            birthday: res.data.father?.birthday ? dayjs(res.data.father.birthday) : null,
+            birthday: res.data.father?.birthday
+              ? dayjs(res.data.father.birthday)
+              : null,
           },
           mother: {
             first_name: res.data.mother?.first_name || "",
@@ -164,9 +177,12 @@ function StudentDetailPage() {
             sure_name: res.data.mother?.sure_name || "",
             passport: res.data.mother?.passport || "",
             pinfl: res.data.mother?.pinfl ? String(res.data.mother.pinfl) : "",
-            phone_number: res.data.mother?.phone_number?.replace("+998", "") || "",
+            phone_number:
+              res.data.mother?.phone_number?.replace("+998", "") || "",
             email: res.data.mother?.email || "",
-            birthday: res.data.mother?.birthday ? dayjs(res.data.mother.birthday) : null,
+            birthday: res.data.mother?.birthday
+              ? dayjs(res.data.mother.birthday)
+              : null,
           },
         };
 
@@ -316,6 +332,27 @@ function StudentDetailPage() {
           onSave={handleSave}
           onCancel={() => navigate(-1)}
           onDelete={() => setIsDeleteOpen(true)}
+        />
+        {role === "admin" && (
+          <div className="flex justify-start">
+            <Button
+              className="ml-9"
+              type="primary"
+              onClick={() => setAttachModalOpen(true)}
+            >
+              Ota-ona qo'shish
+            </Button>
+          </div>
+        )}
+        <AttachParentToStudent
+          studentId={studentId}
+          student={student}
+          open={attachModalOpen}
+          onClose={() => setAttachModalOpen(false)}
+          onSuccess={() => {
+            setAttachModalOpen(false);
+            toast.success(t.attach_success);
+          }}
         />
 
         <div className="mt-6 px-4 md:px-6">

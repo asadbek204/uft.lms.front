@@ -361,7 +361,7 @@ function GroupsPage() {
                 key={item.id}
                 className="relative w-5/6 flex flex-col rounded-md mx-auto drop-shadow-lg bg-white dark:bg-gray-700"
               >
-                <div className="flex justify-between items-center px-4 py-2">
+                <div className="flex justify-between min-h-14 items-center px-4 py-2">
                   <Link
                     to={`${item.id}`}
                     className="block uppercase text-xl border-gray-300 duration-300 ease-in-out hover:text-blue-400 dark:hover:text-blue-400 dark:text-white"
