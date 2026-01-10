@@ -194,7 +194,7 @@ interface ParentFormValues {
   passport?: string;
   pinfl?: string;
   email?: string;
-  birthday?: moment.Moment | null;
+  birthday?: string | null;
   gender?: "M" | "F";
   children?: number[];
   password?: string;
@@ -266,6 +266,9 @@ const transformParentsData = (parentsData: ParentAPI[]): Parent[] => {
     }
   };
 
+  const MaskedInput = InputMask as any;
+
+
   // Birinchi yuklash
   useEffect(() => {
     fetchStudents();
@@ -295,7 +298,9 @@ const transformParentsData = (parentsData: ParentAPI[]): Parent[] => {
         passport: parent.passport || "",
         pinfl: parent.pinfl || "",
         email: parent.email || "",
-        birthday: parent.birthday ? moment(parent.birthday) : null,
+        birthday: parent.birthday
+  ? moment(parent.birthday).format("DD.MM.YYYY")
+  : "",
         gender: parent.gender || undefined,
         password: "",
       });
@@ -343,7 +348,10 @@ const transformParentsData = (parentsData: ParentAPI[]): Parent[] => {
       sure_name: values.sure_name || null,
       pinfl: values.pinfl || null,
       gender: values.gender || null,
-      birthday: values.birthday?.format("YYYY-MM-DD") ?? null,
+      birthday: values.birthday
+  ? moment(values.birthday, "DD.MM.YYYY").format("YYYY-MM-DD")
+  : null,
+
     };
 
     // ✨ passport bo‘lsa — qo‘shamiz
@@ -640,17 +648,25 @@ const transformParentsData = (parentsData: ParentAPI[]): Parent[] => {
             <Form.Item name="email" label={t.email}>
               <Input type="email" placeholder="example@gmail.com" />
             </Form.Item>
+<Form.Item name="birthday" label={t.birthday}>
+  <MaskedInput
+    mask="99.99.9999"
+    value={form.getFieldValue("birthday") || ""}
+    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+      form.setFieldsValue({ birthday: e.target.value });
+    }}
+  >
+    {(inputProps: any) => (
+      <Input
+        {...inputProps}
+        placeholder="DD.MM.YYYY"
+      />
+    )}
+  </MaskedInput>
+</Form.Item>
 
-            <Form.Item
-              name="birthday"
-              label={t.birthday}
-            >
-              <DatePicker
-                format="DD.MM.YYYY"
-                style={{ width: "100%" }}
-                placeholder="Kun.Oy.Yil"
-              />
-            </Form.Item>
+
+
           </div>
 
           <Form.Item className="mt-8 text-right">
