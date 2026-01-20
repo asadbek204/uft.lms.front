@@ -116,27 +116,35 @@ function STDebtorsPage() {
   const [sortedPayments, setSortedPayments] = useState<TPayment[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await client.get("students/payment/list/");
-        console.log(response.data, 'debtor data');
-        const data = response.data[0];
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const response = await client.get("students/payment/list/");
+      console.log(response.data, 'raw response');
+
+      // API dan kelayotgan struktura: array ichida array
+      const realData = response.data?.[0]?.[0];   // ← mana bu muhim
+
+      if (realData) {
         setDebtorData({
-          ...data,
-          modules: data.modules.map((module: TModule) => ({
-            ...module,
-            payments: module.payments,
-          })),
+          id: realData.id || 0,                    // agar id bo‘lmasa
+          student: realData.student || { full_name: "" },
+          total_debt: realData.total_debt || 0,
+          total_payment: realData.total_payment || 0,
+          modules: realData.modules || [],
         });
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching data", error);
-        setLoading(false);
+      } else {
+        console.warn("Ma'lumot topilmadi");
       }
-    };
-    fetchData();
-  }, []);
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching data", error);
+      setLoading(false);
+    }
+  };
+  fetchData();
+}, []);
 
   useEffect(() => {
     if (debtorData.modules.length > 0) {
